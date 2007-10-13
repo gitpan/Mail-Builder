@@ -1,0 +1,20 @@
+MANIFEST
+README
+LICENSE
+Todo
+Changes
+Makefile.PL
+lib/Mail/Builder.pm
+lib/Mail/Builder/List.pm
+lib/Mail/Builder/Address.pm
+lib/Mail/Builder/Attachment.pm
+lib/Mail/Builder/Image.pm
+t/001_load.t
+t/002_pod.t
+t/003_podcoverage.t
+t/004_address.t
+t/005_list.t
+t/006_attachment.t
+t/007_image.t
+t/008_builder.t
+META.yml                                 Module meta-data (added by MakeMaker)
