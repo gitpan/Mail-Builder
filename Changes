@@ -1,6 +1,8 @@
 Revision history for Perl module Mail::Builder
 
-0.01 Sun Oct  7 11:29:38 2007
+1.00 Sun Oct 7 2007
     - original version; created by ExtUtils::ModuleMaker 0.49
-
+1.01 Sun Oct 14 2007
+	- updated META.yml and documentation
+	- Included some files necessary for testing
 
