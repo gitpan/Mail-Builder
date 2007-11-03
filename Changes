@@ -5,4 +5,5 @@ Revision history for Perl module Mail::Builder
 1.01 Sun Oct 14 2007
 	- updated META.yml and documentation
 	- Included some files necessary for testing
-
+1.02 Mon Oct 22 2007
+	- updated documentation

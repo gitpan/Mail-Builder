@@ -3,7 +3,6 @@ package Mail::Builder::List;
 # ================================================================
 use strict;
 use warnings;
-use utf8;
 
 use Carp;
 
@@ -167,24 +166,24 @@ an arbitrary number of parameters. The parameters will be passed to the
 constructor of the list type class.
 An exception is thrown if the object type and the list type do not match.
 
-=head3 length
+=head2 length
 
 Returns the number of items in the list.
 
-=head3 join([STRING])
+=head2 join([STRING])
 
 Serializes all items in the list and joins them with the given string. If no
 string is provided then a semicolon is used.  
 
-=head3 reset
+=head2 reset
 
 Removes all items from the list.
 
-=head3 list
+=head2 list
 
 Returns all items in the list as an array.
 
-=head3 item([INDEX])
+=head2 item([INDEX])
 
 Returns the item at the given index.
 

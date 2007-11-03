@@ -3,7 +3,6 @@ package Mail::Builder::Address;
 # ================================================================
 use strict;
 use warnings;
-use utf8;
 
 use Carp;
 use Email::Valid;
@@ -109,11 +108,11 @@ Simple constructor
 
 Simple accessor
 
-=head3 email
+=head2 email
 
 Simple accessor
 
-=head3 serialize
+=head2 serialize
 
 Prints the address as needed for creating the e-mail header.
 

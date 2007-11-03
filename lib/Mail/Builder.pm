@@ -3,9 +3,9 @@ package Mail::Builder;
 # ================================================================
 use strict;
 use warnings;
-use utf8;
 
 use base qw(Class::Accessor);
+
 
 use Carp;
 
@@ -21,7 +21,7 @@ __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority ch
 
 use vars qw($VERSION);
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 # -------------------------------------------------------------
 sub new

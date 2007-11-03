@@ -3,6 +3,7 @@ README
 LICENSE
 Todo
 Changes
+META.yml
 Makefile.PL
 lib/Mail/Builder.pm
 lib/Mail/Builder/List.pm
@@ -20,4 +21,3 @@ t/008_builder.t
 t/testfile.txt
 t/testfile.pdf
 t/testfile.gif
-META.yml                                 Module meta-data (added by MakeMaker)

@@ -3,7 +3,6 @@ package Mail::Builder::Attachment;
 # ================================================================
 use strict;
 use warnings;
-use utf8;
 
 use Carp;
 
@@ -260,13 +259,13 @@ Simple constructor
 Accessor which takes/returns the path of the file on the filesystem. The file
 must be readable.
 
-=head3 name
+=head2 name
 
 Accessor which takes/returns the name of the file as displayed in the e-mail
 message. If no name is provided the filename will be extracted from the path
 attribute.
 
-=head3 mime
+=head2 mime
 
 Accessor which takes/returns the mime type of the file. If no mime type is 
 provided the module tries to determine the correct mime type for the given
@@ -275,7 +274,7 @@ filename extension. If this fails 'application/octet-stream' will be used.
 The automatic recognition is performed when serialize is executed for the first
 time.
 
-=head3 serialize
+=head2 serialize
 
 Returns the attachment as a MIME::Entity object.
 

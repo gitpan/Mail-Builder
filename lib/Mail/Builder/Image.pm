@@ -3,7 +3,6 @@ package Mail::Builder::Image;
 # ================================================================
 use strict;
 use warnings;
-use utf8;
 
 use Carp;
 
@@ -126,12 +125,12 @@ Simple constructor
 Accessor which takes/returns the path of the file on the filesystem. The file
 must be readable.
 
-=head3 id
+=head2 id
 
 Accessor which takes/returns the id of the file. If no id is provided the 
 lowercase filename without the extension will be used as an id.
 
-=head3 serialize
+=head2 serialize
 
 Returns the image as a MIME::Entity object.
 
