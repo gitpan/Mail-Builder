@@ -142,8 +142,8 @@ AUTHOR
         http://www.k-1.com
 
 COPYRIGHT
-    DateTime:::Format::Parser is Copyright (c) 2006,2007 Maroš Kollár. All
-    rights reserved.
+    Mail::Builder is Copyright (c) 2006,2007 Maroš Kollár. All rights
+    reserved.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

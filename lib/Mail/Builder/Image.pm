@@ -6,6 +6,9 @@ use warnings;
 
 use Carp;
 
+use vars qw($VERSION);
+$VERSION = $Mail::Builder::VERSION;
+
 # -------------------------------------------------------------
 sub new
 # Type: Constructor

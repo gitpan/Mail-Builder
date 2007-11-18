@@ -6,6 +6,9 @@ use warnings;
 
 use Carp;
 
+use vars qw($VERSION);
+$VERSION = $Mail::Builder::VERSION;
+
 # -------------------------------------------------------------
 sub new
 # Type: Constructor
@@ -102,7 +105,7 @@ sub item
 {
 	my $obj = shift;
 	my $index = shift || 0;
-	return undef unless (defined $obj->{'list'}[$index]);
+	return unless (defined $obj->{'list'}[$index]);
 	return $obj->{'list'}[$index];
 }
 

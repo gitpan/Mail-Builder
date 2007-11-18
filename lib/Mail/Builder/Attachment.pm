@@ -6,112 +6,11 @@ use warnings;
 
 use Carp;
 
-use vars qw($MIME);
+use vars qw($VERSION);
 
-$MIME = {
-		'application/base64' => ['mm','mme'],
-		'application/binhex' => ['hqx'],
-		'application/book' => ['boo','book'],
-		'application/cdf' => ['cdf'],
-		'application/drafting' => ['drw'],
-		'application/dxf' => ['dxf'],
-		'application/excel' => ['xl','xla','xlb','xlc','xld','xlk','xll','xlm','xls','xlt','xlv','xlw'],
-		'application/futuresplash' => ['spl'],
-		'application/gnutar' => ['tgz'],
-		'application/hlp' => ['hlp'],
-		'application/hta' => ['hta'],
-		'application/inf' => ['inf'],
-		'application/java' => ['class'],
-		'application/mac-compactpro' => ['cpt'],
-		'application/macbinary' => ['bin'],
-		'application/mspowerpoint' => ['pot','ppa','pps','ppt','ppz','pwz'],
-		'application/msword' => ['doc','dot','w6w','wiz','word'],
-		'application/mswrite' => ['wri'],
-		'application/octet-stream' => ['a','arc','arj','bin','com','dump','exe','lha','lhx','lzh','lzx','o','psd'],
-		'application/pdf' => ['pdf'],
-		'application/postscript' => ['ai','eps','ps'],
-		'application/powerpoint' => ['ppt'],
-		'application/pro_eng' => ['part','prt'],
-		'application/ringing-tones' => ['rng'],
-		'application/rtf' => ['rtf','rtx'],
-		'application/smil' => ['smi','smil'],
-		'application/vnd.ms-project' => ['mpp'],
-		'application/vnd.nokia.configuration-message' => ['ncm'],
-		'application/vnd.nokia.ringing-tone' => ['rng'],
-		'application/vnd.rn-realmedia' => ['rm'],
-		'application/vnd.rn-realplayer' => ['rnx'],
-		'application/vnd.wap.wmlc' => ['wmlc'],
-		'application/vnd.wap.wmlscriptc' => ['wmlsc'],
-		'application/wordperfect' => ['wp','wp5','wp6','wpd','w60','w61'],
-		'application/x-cdf' => ['cdf'],
-		'application/x-compressed' => ['gz','tgz','z','zip'],
-		'application/x-dvi' => ['dvi'],
-		'application/x-gtar' => ['gtar'],
-		'application/x-gzip' => ['gz','gzip'],
-		'application/x-javascript' => ['js'],
-		'application/x-latex' => ['latex','ltx'],
-		'application/x-midi' => ['mid','midi'],
-		'application/x-nokia-9000-communicator-add-on-software' => ['aos'],
-		'application/x-pagemaker' => ['pm4','pm5','pm6'],
-		'application/x-shockwave-flash' => ['swf'],
-		'application/x-sit' => ['sit'],
-		'application/x-tar' => ['tar'],
-		'application/x-visio' => ['vsd','vst','vsw'],
-		'application/x-zip-compressed' => ['zip'],
-		'application/zip' => ['zip'],
-		'audio/aiff' => ['aif','aifc','aiff'],
-		'audio/basic' => ['au','snd'],
-		'audio/mid' => ['rmi'],
-		'audio/midi' => ['kar','mid','midi'],
-		'audio/mpeg' => ['m2a','mp2','mpa','mpg','mpga'],
-		'audio/mpeg3' => ['mp3'],
-		'audio/wav' => ['wav'],
-		'audio/x-au' => ['au'],
-		'audio/x-gsm' => ['gsd','gsm'],,
-		'audio/x-pn-realaudio' => ['ra','ram','rm','rmm','rmp'],
-		'image/bmp' => ['bm','bmp'],
-		'image/gif' => ['gif'],
-		'image/jpeg' => ['jfif','jpe','jpeg','jpg'],
-		'image/pict' => ['pic','pict'],
-		'image/png' => ['png'],
-		'image/tiff' => ['tif','tiff'],
-		'image/vnd.dwg' => ['dwg','dxf','svf'],
-		'image/vnd.rn-realflash' => ['rf'],
-		'image/vnd.rn-realpix' => ['rp'],
-		'image/vnd.wap.wbmp' => ['wbmp'],
-		'image/vnd.xiff' => ['xif'],
-		'image/x-icon' => ['ico'],
-		'image/x-jg' => ['art'],
-		'image/x-pcx' => ['pcx'],
-		'image/x-pict' => ['pct'],
-		'image/x-quicktime' => ['qif','qti','qtif'],
-		'image/x-tiff' => ['tif','tiff'],
-		'image/x-xbitmap' => ['xbm'],
-		'image/xbm' => ['xbm'],
-		'image/xpm' => ['xpm'],
-		'multipart/x-gzip' => ['gzip'],
-		'multipart/x-ustar' => ['ustar'],
-		'multipart/x-zip' => ['zip'],
-		'text/css' => ['css'],
-		'text/html' => ['acgi','htm','html','htmls','htx','shtml'],
-		'text/mcf' => ['mcf'],
-		'text/plain' => ['c','cc','com','conf','cxx','def','f','f90','for','g','h','hh','idc','jav','java','list','log','lst','m','mar','pl','sdml','text','txt'],
-		'text/richtext' => ['rt','rtf','rtx'],
-		'text/sgml' => ['sgm','sgml'],
-		'text/tab-separated-values' => ['tsv'],
-		'text/vnd.rn-realtext' => ['rt'],
-		'text/vnd.wap.wml' => ['wml'],
-		'text/vnd.wap.wmlscript' => ['wmls'],
-		'text/xml' => ['xml'],
-		'video/avi' => ['avi'],
-		'video/mpeg' => ['m1v','m2v','mp2','mp3','mpa','mpe','mpeg','mpg'],
-		'video/msvideo' => ['avi'],
-		'video/quicktime' => ['moov','mov','qt'],
-		'video/vivo' => ['viv','vivo'],
-		'video/vnd.rn-realvideo' => ['rv'],
-		'video/vnd.vivo' => ['viv','vivo'],
-		'x-world/x-vrml' => ['vrml','wrl','wrz'],
-};
+use MIME::Types;
+
+$VERSION = $Mail::Builder::VERSION;
 
 # -------------------------------------------------------------
 sub new
@@ -197,12 +96,8 @@ sub serialize
 	unless ($obj->{'mime'}) {
 		if ($obj->{'path'} =~ m/\.([a-zA-Z0-9]+)$/) {
 			my $file_extension = $1;
-			foreach my $element (keys %{$MIME}) {
-				if (grep {$_ eq $file_extension} @{$MIME->{$element}}) {
-					$obj->{'mime'} = $element;
-					last;
-				}
-			}
+			my $mimetypes = MIME::Types->new;
+			$obj->{'mime'} = $mimetypes->mimeTypeOf($file_extension);
 		}
 		$obj->{'mime'} ||= 'application/octet-stream';
 	}

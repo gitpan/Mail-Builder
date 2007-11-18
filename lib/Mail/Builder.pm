@@ -20,8 +20,7 @@ use Mail::Builder::Image;
 __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset));
 
 use vars qw($VERSION);
-
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 # -------------------------------------------------------------
 sub new
@@ -277,8 +276,7 @@ sub _convert_text
 	my $html_element = shift;
 	my $count_param = shift;
 	my $plain_text = q[];
-	my $html_content = q[];
-	foreach $html_content ($html_element->content_list) {
+	foreach my $html_content ($html_element->content_list) {
 		if (ref($html_content) 
 			&& $html_content->isa('HTML::Element')) {
 			my $html_tagname = $html_content->tag;
@@ -407,7 +405,8 @@ sub _build_html
 
 
 
-__END__
+1;
+
 =pod
 
 =head1 NAME
@@ -573,7 +572,7 @@ notified of progress on your bug as I make changes.
 
 =head1 COPYRIGHT
 
-DateTime:::Format::Parser is Copyright (c) 2006,2007 Maroš Kollár.
+Mail::Builder is Copyright (c) 2006,2007 Maroš Kollár.
 All rights reserved.
 
 This program is free software; you can redistribute

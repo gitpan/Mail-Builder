@@ -7,6 +7,9 @@ use warnings;
 use Carp;
 use Email::Valid;
 
+use vars qw($VERSION);
+$VERSION = $Mail::Builder::VERSION;
+
 # -------------------------------------------------------------
 sub new
 # Type: Constructor

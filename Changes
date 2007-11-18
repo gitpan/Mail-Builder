@@ -1,9 +1,12 @@
 Revision history for Perl module Mail::Builder
 
 1.00 Sun Oct 7 2007
-    - original version; created by ExtUtils::ModuleMaker 0.49
+	- original version; created by ExtUtils::ModuleMaker 0.49
 1.01 Sun Oct 14 2007
 	- updated META.yml and documentation
 	- Included some files necessary for testing
 1.02 Mon Oct 22 2007
 	- updated documentation
+1.03 Mon Nov 19 2007
+	- corrected META.yml
+	- Changed custom mime type recognition: Now uses MIME::Types
