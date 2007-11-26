@@ -20,7 +20,7 @@ use Mail::Builder::Image;
 __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset));
 
 use vars qw($VERSION);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 # -------------------------------------------------------------
 sub new

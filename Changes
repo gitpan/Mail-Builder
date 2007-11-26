@@ -10,3 +10,6 @@ Revision history for Perl module Mail::Builder
 1.03 Mon Nov 19 2007
 	- corrected META.yml
 	- Changed custom mime type recognition: Now uses MIME::Types
+1.04 Mon Nov 19 2007
+	- corrected Makefile.pm
+	- corrected META.yml
