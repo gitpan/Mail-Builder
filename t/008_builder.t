@@ -2,7 +2,7 @@
 
 # t/008_builder.t - check if everything works well toghether
 
-use Test::More tests => 46;
+use Test::More tests => 61;
 
 use Mail::Builder;
 
@@ -78,7 +78,7 @@ ok($object->priority('4'),'Set priority');
 ok($mime = $object->build_message(),'Build Message');
 isa_ok($mime,'MIME::Entity');
 like($object->{'plaintext'},qr/\t* Bullet/);
-like($object->{'plaintext'},qr/\t1 Item/);
+like($object->{'plaintext'},qr/\t1\. Item/);
 like($object->{'plaintext'},qr/_This is an italic text_/);
 like($object->{'plaintext'},qr/\*This is a bold text\*/);
 isa_ok($mime->head,'MIME::Head');
@@ -90,3 +90,20 @@ is($mime->parts,2);
 ok($mime = $object->stringify(),'Stringify Message');
 like($mime,qr/Content-Type: text\/html; charset="iso-8859-1"/);
 like($mime,qr/------_=_NextPart_002_/);
+
+my $object2 = Mail::Builder->new();
+ok($object2->to->add('recipient2@test.com'));
+ok($object2->from('from2@test.com','me'));
+ok($object2->subject('Testmail'));
+ok($object2->plaintext(qq[Text]));
+ok($object2->attachment->add(qq[t/testfile.pdf],q[test.pdf]));
+is($object2->attachment->length,1);
+ok($mime = $object2->build_message(),'Build Message');
+isa_ok($mime,'MIME::Entity');
+isa_ok($mime->head,'MIME::Head');
+is($mime->head->get('To'),'<recipient2@test.com>'."\n");
+is($mime->head->get('Subject'),'Testmail'."\n");
+is($mime->head->get('From'),'"me" <from2@test.com>'."\n");
+is($mime->parts,2);
+is($mime->parts(0)->mime_type,'application/pdf');
+is($mime->parts(1)->mime_type,'text/plain');

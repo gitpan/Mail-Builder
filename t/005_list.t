@@ -2,7 +2,7 @@
 
 # t/005_list.t - check module for list handling
 
-use Test::More tests => 17;
+use Test::More tests => 18;
 
 use Mail::Builder;
 
@@ -15,15 +15,17 @@ ok($list->add('test@test.com'), 'Add new item');
 is($list->length, 1);
 ok($list->add('test2@test2.com','test'), 'Add new item');
 is($list->length, 2);
-is(scalar($list->list),2);
+isa_ok(scalar($list->list),'ARRAY');
 isa_ok($list->item(0),'Mail::Builder::Address');
 isa_ok($list->item(1),'Mail::Builder::Address');
 is($list->item(2),undef);
 is($list->join(', '),'<test@test.com>, "test" <test2@test2.com>');
+my $address1 = new Mail::Builder::Address('test2@test2.com');
+ok($list->has($address1),'Has item');
 ok($list->reset,'Reset list');
 is($list->length, 0);
-my $address = Mail::Builder::Address->new('test3@test3.com','test3');
-ok($list->add($address));
+my $address2 = Mail::Builder::Address->new('test3@test3.com','test3');
+ok($list->add($address2));
 is($list->length, 1);
 my $fake_object = bless {},'Fake';
 eval {

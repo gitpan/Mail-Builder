@@ -10,13 +10,40 @@ use Email::Valid;
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
-# -------------------------------------------------------------
-sub new
-# Type: Constructor
-# Parameters: EMAIL[,NAME]
-# Returnvalue: Object
-# -------------------------------------------------------------
-{
+
+=head1 NAME
+
+Mail::Builder::Address - Helper module for handling e-mail addresses
+
+=head1 SYNOPSIS
+
+  use Mail::Builder;
+  
+  my $mail = Mail::Builder::Address->new('mightypirate@meele-island.mq','Gaybrush Thweedwood');
+  # Now correct the display name and address
+  $mail->name('Guybrush Threepwood');
+  $mail->email('verymightypirate@meele-island.mq');
+  # Serialize
+  print $mail->serialize;
+  
+=head1 DESCRIPTION
+
+This is a simple module for handling e-mail addresses. It can store the address
+and an optional display name.
+
+=head1 METHODS
+
+=head2 Constructor
+
+=head3 new
+
+ Mail::Builder::Address->new(EMAIL[,DISPLAY NAME]);
+
+Simple constructor
+
+=cut
+
+sub new {
 	my $class = shift;
 	my $obj = bless {
 		email	=> undef,
@@ -29,13 +56,73 @@ sub new
 	return $obj;
 }
 
-# -------------------------------------------------------------
-sub name
-# Type: Accessor
-# Parameters: NAME
-# Returnvalue: Name
-# -------------------------------------------------------------
-{
+=head2 Public Methods
+
+=head3 serialize
+
+Prints the address as required for creating the e-mail header.
+
+=cut
+
+sub serialize {
+    my $obj = shift;
+    return undef unless ($obj->{email});
+    my $return_value = qq[<$obj->{'email'}>];
+    $return_value = qq["$obj->{'name'}" ].$return_value if $obj->{'name'};
+    return $return_value;
+}
+
+=head3 compare
+
+ $obj->compare(OBJECT);
+ or
+ $obj->compare(E-MAIL);
+
+Checks if two address objects contain the same e-mail address. Returns true 
+or false. The compare method does not check if the address names of the
+two objects are identical.
+
+Instead of a C<Mail::Builder::Address> object you can also pass a 
+scalar value representing the e-mail address.
+
+=cut
+
+sub compare {
+    my $obj = shift;
+    my $compare = shift;
+    
+    return 0 unless ($compare);
+    
+    if (ref($compare)) {
+        return 0 unless $compare->isa(__PACKAGE__);
+        return ($compare->{email} eq $obj->{email}) ? 1:0;
+    } else {
+        return ($compare eq $obj->{email}) ? 1:0;  
+    }
+}
+
+=head3 empty
+
+Deletes the current address
+
+=cut
+
+sub empty {
+    my $obj = shift;
+    undef $obj->{'name'};
+    undef $obj->{'email'};
+}
+
+
+=head2 Accessors
+
+=head3 name
+
+Display name
+
+=cut
+
+sub name {
 	my $obj = shift;
  	if(@_) {
 		$obj->{'name'} = shift;
@@ -46,13 +133,13 @@ sub name
 	return $obj->{'name'};
 }
 	
-# -------------------------------------------------------------
-sub email
-# Type: Accessor
-# Parameters: EMAIL
-# Returnvalue: Name
-# -------------------------------------------------------------
-{
+=head3 email
+
+E-mail address. Will be checked with L<Email::Valid>
+
+=cut
+
+sub email {
 	my $obj = shift;
  	if(@_) {
 		my $email_address = shift;
@@ -63,61 +150,10 @@ sub email
 	return $obj->{'email'};
 }
 
-# -------------------------------------------------------------
-sub serialize
-# Type: Method
-# Parameters: -
-# Returnvalue: e-mail adress as needed for MIME::Tools
-# -------------------------------------------------------------
-{
-	my $obj = shift;
-	my $return_value = qq[<$obj->{'email'}>];
-	$return_value = qq["$obj->{'name'}" ].$return_value if $obj->{'name'};
-	return $return_value;
-}
-
 1;
 
 __END__
-=pod
 
-=head1 NAME
-
-Mail::Builder::Address - Helper module for handling e-mail addresses
-
-=head1 SYNOPSIS
-
-  use Mail::Builder;
-  
-  my $mail = Mail::Builder::Address->new('mightypirate@meele-island.mq','Gaybrush Thweedwood');
-  $mail->name('Guybrush Threepwood');
-  $mail->email('verymightypirate@meele-island.mq');
-  print $mail->serialize;
-  
-=head1 DESCRIPTION
-
-This is a simple module for handling e-mail addresses. It can store the address
-and an optional name.
-
-=head1 USAGE
-
-=head2 new
-
- Mail::Builder::Address->new(EMAIL[,NAME]);
-
-Simple constructor
-
-=head2 name
-
-Simple accessor
-
-=head2 email
-
-Simple accessor
-
-=head2 serialize
-
-Prints the address as needed for creating the e-mail header.
 
 =head1 AUTHOR
 

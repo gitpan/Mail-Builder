@@ -9,6 +9,8 @@ lib/Mail/Builder.pm
 lib/Mail/Builder/List.pm
 lib/Mail/Builder/Address.pm
 lib/Mail/Builder/Attachment.pm
+lib/Mail/Builder/Attachment/Data.pm
+lib/Mail/Builder/Attachment/File.pm
 lib/Mail/Builder/Image.pm
 t/001_load.t
 t/002_pod.t
@@ -18,6 +20,7 @@ t/005_list.t
 t/006_attachment.t
 t/007_image.t
 t/008_builder.t
+t/009_metayaml.t
 t/testfile.txt
 t/testfile.pdf
 t/testfile.gif

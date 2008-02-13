@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Mail-Builder
-version: 1.04
+version: 1.05
 author:
   - Maroš Kollár <maros[at]k-1.com>
 abstract: Easily create e-mails with attachments, html and inline images
@@ -11,11 +11,12 @@ requires:
   Email::Valid: 0
   Class::Accessor: 0
   HTML::TreeBuilder: 3
-  Mime::Types: 0
+  Mime::Type: 0
+  MIME::Entity: 5.4
 provides:
   Mail::Builder:
     file: lib/Mail/Builder.pm
-    version: 1.03
+    version: 1.05
   Mail::Builder::List:
     file: lib/Mail/Builder/List.pm
   Mail::Builder::Address:
@@ -24,6 +25,10 @@ provides:
     file: lib/Mail/Builder/Image.pm
   Mail::Builder::Attachment:
     file: lib/Mail/Builder/Attachment.pm
+  Mail::Builder::Attachment::Data:
+    file: lib/Mail/Builder/Attachment/Data.pm
+  Mail::Builder::Attachment::File:
+    file: lib/Mail/Builder/Attachment/File.pm
 build_requires:
   Test::Pod: 0
   Test::More: 0
