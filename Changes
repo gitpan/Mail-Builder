@@ -18,4 +18,7 @@ Revision history for Perl module Mail::Builder
       M::B::Attachment::Data
     - Additional M::B::List utility methods
     - Better documentation
-1.06 ? ? ? 2008
+1.07 Wed Feb 20 2008
+    - Slighltly changed behaviour of to,cc,bcc,attachment and image accessors
+    - Documentation
+    - Repaired broken deps

@@ -23,7 +23,7 @@ __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority ch
 __PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 =head1 NAME
 

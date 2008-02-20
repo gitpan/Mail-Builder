@@ -18,7 +18,7 @@ WriteMakefile(
         'Email::Valid'        => '0',
         'Class::Accessor'     => '0',
         'HTML::TreeBuilder'   => '0',
-        'Mime::Type'          => '0',
+        'MIME::Type'          => '0',
         'Email::MessageID'    => '0',
     },
 );
