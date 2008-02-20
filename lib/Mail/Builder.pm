@@ -10,6 +10,7 @@ use Carp;
 
 use MIME::Entity;
 use HTML::TreeBuilder;
+use Email::MessageID;
 
 use Mail::Builder::List;
 use Mail::Builder::Address;
@@ -19,9 +20,10 @@ use Mail::Builder::Attachment::Data;
 use Mail::Builder::Image;
 
 __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset));
+__PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 =head1 NAME
 
@@ -43,7 +45,7 @@ Mail::Builder - Easily create e-mails with attachments, html and inline images
   # Send it with your favourite module (e.g. Email::Send)
   my $mailer = Email::Send->new({mailer => 'Sendmail'})->send($mail->stringify);
   
-  # Or mess with the MIME::Entity objects
+  # Or mess with MIME::Entity objects
   my $mime = $mail->build_message; 
 
 =head1 DESCRIPTION
@@ -68,7 +70,7 @@ Stores an e-mail address and a display name.
 
 =item * Attachments: L<Mail::Builder::Attachment::File> and L<Mail::Builder::Attachment::Data>
 
-This classes manage attachments which can be created either from files on the
+This classes manages attachments which can be created either from files on the
 filesystem or from data in memory.
 
 =item * Inline images:L<Mail::Builder::Image>
@@ -112,6 +114,7 @@ sub new {
 		htmltext	=> undef,
 		attachment	=> Mail::Builder::List->new('Mail::Builder::Attachment'),
 		image		=> Mail::Builder::List->new('Mail::Builder::Image'),
+		messageid   => undef,
 	},$class;
 	bless $obj,$class;
 	return $obj;
@@ -123,6 +126,8 @@ sub new {
 
 Returns the e-mail message as a string. This string can be passed to modules
 like L<Email::Send>.
+
+This method is just a shortcut to C<$mb-&gt;build_message-&gt;stringify>
 
 =cut
 
@@ -137,8 +142,8 @@ Returns the e-mail message as a MIME::Entity object. You can mess arround with
 the object, change parts, ... as you wish. 
 
 Every time you call build_message the MIME::Entity object will be created, 
-which can take some time if you are sending the e-mail to many recipients. In 
-order to increase the speed of the module the Mail::Builder::Attachment and
+which can take some time if you are sending bulk e-mails. In 
+order to increase the processing speed Mail::Builder::Attachment and
 Mail::Builder::Image entities will be cached and only rebuilt if something 
 has changed.
 
@@ -153,6 +158,9 @@ sub build_message {
     croak(q[e-mail content missing]) unless ($obj->{'plaintext'} || $obj->{'htmltext'});
     croak(q[Invalid priority (only 1-5)]) unless (defined($obj->{'priority'}) && $obj->{'priority'} =~ /^[1-5]$/);
     
+    # Set message ID
+    $obj->{'messageid'} = Email::MessageID->new();
+    
     # Set header fields
     my %email_header = (
         'Top'           => 1,
@@ -161,6 +169,7 @@ sub build_message {
         'Cc'            => $obj->{'cc'}->join,
         'Bcc'           => $obj->{'bcc'}->join,
         'Subject'       => $obj->{'subject'},
+        'Message-ID'    => $obj->{'messageid'},
         'X-Priority'    => $obj->{'priority'},
         'X-Mailer'      => "Mail::Builder with MIME::Tools",
     );
@@ -204,10 +213,6 @@ sub build_message {
 
 =head2 Accessors 
 
-=head3 from
-
-This is a simple constructor. It does not expect any parameters.
-
 =head3 from, returnpath, reply
 
 These accessors set/return the from and reply address as well as the
@@ -246,17 +251,22 @@ sub reply {
  $obj->to(Mail::Builder::Address)
  OR
  $obj->to(EMAIL[,NAME])
- OR
+
+This accessor always returns a Mail::Builder::List object. If you supply
+a L<Mail::Builder::List> the list will be replaced.
+
+If you supply a Mail::Builder::Address object or an e-mail address 
+(with an optional name),the current list will be reset and the new address 
+will be added. 
+
+The L<Mail::Builder::List> package provides some basic methods for 
+manipulating the list of recipients.
+
+If you want to append an additional address to the list use
+
  $obj->to->add(EMAIL[,NAME])
  OR
  $obj->to->add(Mail::Builder::Address)
-
-This accessor always returns a Mail::Builder::List object. If you supply
-a L<Mail::Builder::List> the object will be replaced. If you supply a 
-Mail::Builder::Address object or an e-mail address (with an optional name),
-the new address will be appended to the list of recipients. 
-The L<Mail::Builder::List> package provides some basic methods for 
-manipulating the list of recipients.
 
 =cut
 
@@ -275,6 +285,11 @@ sub bcc {
     return $obj->_list('bcc',@_);
 }
 
+=head3 messageid
+
+Message ID of the e-mail. Read only and only available after the 
+C<build_message> or C<stingify> methods have been called.
+
 =head3 organization
  
 Accessor for the name of the senders organisation.
@@ -285,11 +300,11 @@ Priority accessor. Accepts values from 1 to 5. The default priority is 3.
 
 =head3 subject
 
-e-mail subject accessor.
+e-mail subject accessor. Must be specified.
 
 =head3 charset
 
-charset accessor. Defaults to utf8.
+Charset accessor. Defaults to utf8.
 
 =head3 htmltext
 
@@ -307,11 +322,11 @@ The following html tags will be transformed:
 
 =item * I, EM
 
-Italic text will be sorounded by underscores. (_)
+Italic text will be surounded by underscores. (_)
 
 =item * H1, H2, H3, ...
 
-Headnlines will be replaced by two equal signs (=)
+Headlines will be replaced by two equal signs (=)
 
 =item * STRONG, B
 
@@ -327,7 +342,7 @@ Single linebreak
 
 =item * P, DIV
 
-Duoble linebreak
+Double linebreak
 
 =item * UL, OL
 
@@ -343,15 +358,22 @@ number.
  $obj->attachment(Mail::Builder::Attachment)
  OR
  $obj->attachment(PATH[,NAME,MIME])
- OR
+ 
+This accessor always returns a Mail::Builder::List object. If you supply
+a L<Mail::Builder::List> the list will be replaced.
+
+If you pass a Mail::Builder::Attachment object or a scalar path (with an
+optional name an mime type) the current list will be reset and the new 
+attachment will be added. 
+
+The L<Mail::Builder::List> package provides some basic methods for 
+manipulating the list of recipients.
+
+If you want to append an additional attachment to the list use
+
  $obj->attachment->add(PATH[,NAME,MIME])
  OR
  $obj->attachment->add(Mail::Builder::Attachment)
-
-This accessor always returns a Mail::Builder::List object. If you supply
-a L<Mail::Builder::List> object it will be replaced. If you supply a 
-Mail::Builder::Attachment object or a path to a file (with an optional name an 
-mime type), the new attachment will be appended to the list. 
 
 =cut
 
@@ -367,19 +389,25 @@ sub attachment {
  $obj->image(Mail::Builder::Image)
  OR
  $obj->image(PATH[,ID])
- OR
+ 
+This accessor always returns a Mail::Builder::List object. If you supply
+a L<Mail::Builder::List> the list will be replaced.
+
+If you pass a Mail::Builder::Image object or a scalar path (with an
+optional id) the current list will be reset and the new image will be added. 
+
+The L<Mail::Builder::List> package provides some basic methods for 
+manipulating the list of recipients.
+
+If you want to append an additional attachment to the list use
+
  $obj->image->add(PATH[,ID])
  OR
  $obj->image->add(Mail::Builder::Image)
 
-This accessor always returns a Mail::Builder::List object. If you supply
-a Mail::Builder::List object it will be replaced. If you supply a 
-Mail::Builder::Image object or a path to a file (with an optional id), the new 
-image will be appended to the list. 
-
 You can embed the image into the html mail body code by referencing the ID. If 
-you didn't provide an ID the lowercase filename without the extension will be 
-used.
+you don't provide an ID the lowercase filename without the extension will be 
+used as the ID.
 
  <img src="cid:logo"/>
 
@@ -426,13 +454,14 @@ sub _list
 	my $field = shift;
 	
 	if (@_) {
-	    # Replace list
+	    # Replace list object
 		if (ref($_[0])
 			&& $_[0]->isa('Mail::Builder::List')) {
 			croak('List types do not match') unless ($_[0]->type eq $obj->{$field}->type);				
 			$obj->{$field} = $_[0];
-		# Add new value
+		# Reset list and add new value
 	    } else {
+	        $obj->{$field}->reset();
 			$obj->{$field}->add(@_);
 		}
 	}
@@ -517,7 +546,7 @@ sub _build_text
 {
 	my $obj = shift;
 	my %mime_params = @_;
-
+    
     # Build plaintext message from HTML
 	if (defined $obj->{'htmltext'}
 		&& ! defined($obj->{'plaintext'})) {
@@ -589,7 +618,7 @@ sub _build_html
 		# Add the html body
 		$mime_part->add_part(build MIME::Entity (
 			Top 		=> 0,
-			Type		=> qq[text/html; charset="iso-8859-1"],
+			Type		=> qq[text/html; charset="$obj->{'charset'}"],
 			Data		=> $obj->{'htmltext'},
 			Encoding	=> 'quoted-printable',
 		));
@@ -601,7 +630,7 @@ sub _build_html
 	} else {
 		$mime_part = build MIME::Entity (
 			%mime_params,
-			Type		=> qq[text/html; charset="iso-8859-1"],
+			Type		=> qq[text/html; charset="$obj->{'charset'}"],
 			Data		=> $obj->{'htmltext'},
 			Encoding	=> 'quoted-printable',
 		);
@@ -629,7 +658,7 @@ notified of progress on your bug as I make changes.
 
 =head1 COPYRIGHT
 
-Mail::Builder is Copyright (c) 2006,2007 Maroš Kollár.
+Mail::Builder is Copyright (c) 2007,2008 Maroš Kollár.
 All rights reserved.
 
 This program is free software; you can redistribute

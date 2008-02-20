@@ -13,3 +13,9 @@ Revision history for Perl module Mail::Builder
 1.04 Mon Nov 19 2007
 	- corrected Makefile.pm
 	- corrected META.yml
+1.05 Mon Feb 11 2008
+    - Split M::B::Attachment into M::B::Attachment::File and M:
+      M::B::Attachment::Data
+    - Additional M::B::List utility methods
+    - Better documentation
+1.06 ? ? ? 2008
