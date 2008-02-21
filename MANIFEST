@@ -20,7 +20,6 @@ t/005_list.t
 t/006_attachment.t
 t/007_image.t
 t/008_builder.t
-t/009_metayaml.t
 t/testfile.txt
 t/testfile.pdf
 t/testfile.gif

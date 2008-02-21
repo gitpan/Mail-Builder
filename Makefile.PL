@@ -8,7 +8,7 @@ WriteMakefile(
     VERSION_FROM => 'lib/Mail/Builder.pm',                 # finds \$VERSION
     AUTHOR       => 'Maros Kollar (maros [at] k-1.com)',
     ABSTRACT     =>
-        'Easily create e-mails with attachments, html and inline images',
+        'Create e-mail messages with attachments, html text and inline images',
     NO_META   => 1,
     PREREQ_PM => {
         'Test::More'          => '0',
@@ -18,7 +18,7 @@ WriteMakefile(
         'Email::Valid'        => '0',
         'Class::Accessor'     => '0',
         'HTML::TreeBuilder'   => '0',
-        'MIME::Type'          => '0',
+        'MIME::Types'         => '0',
         'Email::MessageID'    => '0',
     },
 );

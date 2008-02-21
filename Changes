@@ -22,3 +22,5 @@ Revision history for Perl module Mail::Builder
     - Slighltly changed behaviour of to,cc,bcc,attachment and image accessors
     - Documentation
     - Repaired broken deps
+1.08 Wed Feb 21 2008
+    - Fixed broken metayaml test

@@ -19,15 +19,15 @@ use Mail::Builder::Attachment::File;
 use Mail::Builder::Attachment::Data;
 use Mail::Builder::Image;
 
-__PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset));
+__PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset language));
 __PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 =head1 NAME
 
-Mail::Builder - Easily create e-mails with attachments, html and inline images 
+Mail::Builder - Create e-mail messages with attachments, html text and inline images
 
 =head1 SYNOPSIS
 
@@ -112,6 +112,7 @@ sub new {
 		charset     => 'utf8',
 		plaintext	=> undef,
 		htmltext	=> undef,
+		language    => undef,
 		attachment	=> Mail::Builder::List->new('Mail::Builder::Attachment'),
 		image		=> Mail::Builder::List->new('Mail::Builder::Image'),
 		messageid   => undef,
@@ -176,7 +177,12 @@ sub build_message {
     
     # Set reply
     if (defined $obj->{'reply'}) {
-        $email_header{'Reply-To'} = $obj->{'reply'}->serialize();
+        $email_header{'Reply-To'} = $obj->{'reply'}->serialize;
+    }
+    
+    # Set language
+    if (defined $obj->{'language'}) {
+        $email_header{'Content-language'} = $obj->{'language'};
     }
     
     # Set return path
@@ -284,6 +290,10 @@ sub bcc {
     my $obj = shift;
     return $obj->_list('bcc',@_);
 }
+
+=head3 language
+
+e-mail text language
 
 =head3 messageid
 
