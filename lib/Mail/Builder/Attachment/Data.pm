@@ -19,9 +19,14 @@ Mail::Builder::Attachment - Helper module for handling attachments from data
 
   use Mail::Builder;
   
-  my $attachment = Mail::Builder::Attachment($data,'invitation.pdf','application/pdf');
+  my $attachment = Mail::Builder::Attachment::Data($data,'invitation.pdf','application/pdf');
   $attachment->name('party_invitation.pdf');
   print $attachment->serialize;
+  
+  # Append the attachment to an Mail::Builder object
+  $mb->attachment($attachment); # this removes all other attachments
+  OR
+  $mb->attachment->add($mail);
   
 =head1 DESCRIPTION
 

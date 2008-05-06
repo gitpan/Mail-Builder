@@ -2,12 +2,13 @@
 
 # t/005_list.t - check module for list handling
 
-use Test::More tests => 18;
+use Test::More tests => 28;
 
 use Mail::Builder;
 
-my $list = Mail::Builder::List->new('Mail::Builder::Address');
+my ($list,$list2); 
 
+ok($list = Mail::Builder::List->new('Mail::Builder::Address'),'Create list');
 isa_ok ($list, 'Mail::Builder::List');
 is($list->type, 'Mail::Builder::Address');
 is($list->length, 0);
@@ -32,3 +33,13 @@ eval {
 	$list->add($fake_object);
 };
 like($@,qr/Invalid item added to list/);
+
+ok($list2 = Mail::Builder::List->convert([$address1,$address2]),'Convert item');
+is($list2->item(0)->email, 'test2@test2.com');
+is($list2->length, 2);
+ok($list2->remove($address1));
+is($list2->length, 1);
+ok($list2->remove($address1));
+is($list2->length, 1);
+ok($list2->remove($address2->email));
+is($list2->length, 0);

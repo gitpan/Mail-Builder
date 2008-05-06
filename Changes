@@ -14,13 +14,20 @@ Revision history for Perl module Mail::Builder
 	- corrected Makefile.pm
 	- corrected META.yml
 1.05 Mon Feb 11 2008
-    - Split M::B::Attachment into M::B::Attachment::File and M:
+    - Split M::B::Attachment into M::B::Attachment::File and
       M::B::Attachment::Data
     - Additional M::B::List utility methods
     - Better documentation
 1.07 Wed Feb 20 2008
-    - Slighltly changed behaviour of to,cc,bcc,attachment and image accessors
+    - Slightly changed behavior of to,cc,bcc,attachment and image accessors
     - Documentation
     - Repaired broken deps
 1.08 Wed Feb 21 2008
     - Fixed broken metayaml test
+1.09 Tue May 6 2008
+    - Switched to Module::Install
+    - Fixed typos in documentation
+    - Improved handling of '<a href="..">' tags in text conversion
+    - Fixed bug in item list removal
+    - Additional tests
+    - Multipart parts now specify Encoding = 'binary'

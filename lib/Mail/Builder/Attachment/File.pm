@@ -21,10 +21,15 @@ Mail::Builder::Attachment - Helper module for handling attachments from files
 
   use Mail::Builder;
   
-  my $attachment = Mail::Builder::Attachment('/home/guybrush/2007_10_11_invitation.pdf','invitation.pdf','application/pdf');
+  my $attachment = Mail::Builder::Attachment::File('/home/guybrush/2007_10_11_invitation.pdf','invitation.pdf','application/pdf');
   $attachment->name('party_invitation.pdf');
   print $attachment->serialize;
   
+  # Append the attachment to an Mail::Builder object
+  $mb->attachment($attachment); # this removes all other attachments
+  OR
+  $mb->attachment->add($mail);
+
 =head1 DESCRIPTION
 
 This is a simple module for handling attachments with Mail::Builder.

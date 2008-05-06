@@ -26,8 +26,8 @@ Mail::Builder::List - Helper module for handling various lists
 
 =head1 DESCRIPTION
 
-This is a simple module for handling various lists (e.g. recipient, attachment
-lists). The class contains various convinient array/list handling functions.
+This is a helper module for handling various lists (e.g. recipient, attachment
+lists). The class contains convinient array/list handling functions.
 
 =head1 METHODS
 
@@ -74,7 +74,7 @@ sub convert {
     my $list_type = ref $list_data->[0];
     
     croak(qq[Uanble to determine list type: List must hold objects])
-        unless (scalar @$list_data);
+        unless ($list_type);
     
     my $obj = $class->new($list_type);
     
@@ -158,7 +158,7 @@ sub remove {
     } else {
         my $new_list = [];
         foreach my $item (@{$obj->{list}}) {
-            next if ($item == $value);
+            next if (ref($value) && $item == $value);
             next if ($item->compare($value));
             CORE::push @{$new_list},$item;
         }
@@ -232,6 +232,9 @@ sub has {
     return 0;
 }
 
+
+=head2 Accessor
+
 =head3 type
 
 Returns the class name which was initially passed to the constructor. 
@@ -242,8 +245,6 @@ sub type {
     my $obj = shift;
     return $obj->{'type'};
 }
-
-=head2 Accessor
 
 =head3 list
 

@@ -21,6 +21,11 @@ Mail::Builder::Image - Helper module for handling inline images
   # Change CID
   $image->id('invitation_location');
   
+  # Mail::Builder object
+  $mb->image($image);
+  OR
+  $mb->image->add($image);
+  
   # In the e-mail body
   <img src="cid:invitation_location" alt=""/>
   

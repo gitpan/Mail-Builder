@@ -26,6 +26,11 @@ Mail::Builder::Address - Helper module for handling e-mail addresses
   # Serialize
   print $mail->serialize;
   
+  # Use the address as a recipient for  Mail::Builder object
+  $mb->to($mail); # This removes all other recipients 
+  OR
+  $mb->to->add($mail);
+
 =head1 DESCRIPTION
 
 This is a simple module for handling e-mail addresses. It can store the address
@@ -103,7 +108,7 @@ sub compare {
 
 =head3 empty
 
-Deletes the current address
+Deletes the current address/name values. Leaves an empy object
 
 =cut
 

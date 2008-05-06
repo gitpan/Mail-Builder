@@ -2,7 +2,7 @@
 
 # t/008_builder.t - check if everything works well toghether
 
-use Test::More tests => 61;
+use Test::More tests => 65;
 
 use Mail::Builder;
 
@@ -66,6 +66,27 @@ ok($object->htmltext(qq[<html><head></head><body><h1>Headline</h1>
 </ol>
 <em>This is an <span>italic</span> text</em>
 
+<p><a href="http://revdev.at">Visit us</a></p>
+
+<img src="cid:revdev" alt="revdev logo"/>
+
+<table>
+  <tr>
+    <td>Test1</td>
+    <td>Test2</td>
+    <td>Test3</td>
+  </tr>
+  <tr>
+    <td colspan="2">Test21</td>
+    <td>Test23</td>
+  </tr>
+  <tr>
+    <td>Test31</td>
+    <td>Test32</td>
+    <td>Test33</td>
+  </tr>
+</table>
+
 </p>
 </body>
 </html>
@@ -81,6 +102,12 @@ like($object->{'plaintext'},qr/\t* Bullet/);
 like($object->{'plaintext'},qr/\t1\. Item/);
 like($object->{'plaintext'},qr/_This is an italic text_/);
 like($object->{'plaintext'},qr/\*This is a bold text\*/);
+like($object->{'plaintext'},qr/\[http:\/\/revdev\.at Visit us\]/);
+like($object->{'plaintext'},qr/\[revdev logo\]/);
+
+like($object->{'plaintext'},qr/Test1\s\sTest2\s\sTest3/);
+like($object->{'plaintext'},qr/Test21\s{8}Test23/);
+
 isa_ok($mime->head,'MIME::Head');
 is($mime->head->get('To'),'<recipient1@test.com>'."\n");
 is($mime->head->get('Cc'),'<cc1@test.com>,<cc2@test.com>'."\n");

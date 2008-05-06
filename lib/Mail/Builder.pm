@@ -11,6 +11,7 @@ use Carp;
 use MIME::Entity;
 use HTML::TreeBuilder;
 use Email::MessageID;
+use Text::Table;
 
 use Mail::Builder::List;
 use Mail::Builder::Address;
@@ -23,11 +24,12 @@ __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority ch
 __PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 =head1 NAME
 
-Mail::Builder - Create e-mail messages with attachments, html text and inline images
+Mail::Builder - Easily create plaintext/html e-mail messages with attachments, 
+inline images
 
 =head1 SYNOPSIS
 
@@ -64,13 +66,13 @@ classes:
 
 =over
 
-=item * L<Address: Mail::Builder::Address>
+=item * L<Mail::Builder::Address>
 
 Stores an e-mail address and a display name.
 
 =item * Attachments: L<Mail::Builder::Attachment::File> and L<Mail::Builder::Attachment::Data>
 
-This classes manages attachments which can be created either from files on the
+This classes manages attachments which can be created either from files in the
 filesystem or from data in memory.
 
 =item * Inline images:L<Mail::Builder::Image>
@@ -78,7 +80,7 @@ filesystem or from data in memory.
 The Address: Mail::Builder::Image class manages images that should be 
 displayed in the e-mail body.
 
-=item * L<Address: Mail::Builder::List>
+=item * L<Mail::Builder::List>
 
 Helper class for handling list of varoius items (recipient lists, attachment
 lists, ...)
@@ -109,7 +111,7 @@ sub new {
 		bcc			=> Mail::Builder::List->new('Mail::Builder::Address'),
 		priority	=> 3,
 		subject		=> '',
-		charset     => 'utf8',
+		charset     => 'utf-8',
 		plaintext	=> undef,
 		htmltext	=> undef,
 		language    => undef,
@@ -128,7 +130,7 @@ sub new {
 Returns the e-mail message as a string. This string can be passed to modules
 like L<Email::Send>.
 
-This method is just a shortcut to C<$mb-&gt;build_message-&gt;stringify>
+This method is just a shortcut to C<$mb-E<gt>build_message-E<gt>stringify>
 
 =cut
 
@@ -205,6 +207,7 @@ sub build_message {
             %email_header,
             Type        => 'multipart/mixed',
             Boundary    => $obj->_get_boundary(),
+            Encoding    => 'binary',
         );
         foreach ($obj->{'attachment'}->list()) {
             $mime_entity->add_part($_->serialize());
@@ -229,9 +232,11 @@ returnpath for bounced messages.
  $obj->from(Mail::Builder::Address)
 
 This accessor always returns a Mail::Builder::Address object. 
-If parameters are provided the object will be replaced. You can either
-suppy a Mail::Builder::Address object, or an e-mail address with an optional 
-name.
+
+To change the attribute value you can either supply a L<Mail::Builder::Address> 
+object or scalar parameters which will be passed to 
+C<Mail::Builder::Address-E<gt>new>. (email address, and an optional display
+name)
 
 =cut
 
@@ -258,17 +263,26 @@ sub reply {
  OR
  $obj->to(EMAIL[,NAME])
 
-This accessor always returns a Mail::Builder::List object. If you supply
-a L<Mail::Builder::List> the list will be replaced.
+This accessor always returns a L<Mail::Builder::List> object containing
+L<Mail::Builder::Address> objects. 
 
-If you supply a Mail::Builder::Address object or an e-mail address 
-(with an optional name),the current list will be reset and the new address 
-will be added. 
+To alter the values you can either
+
+=over
+
+=item * Manipulate the L<Mail::Builder::List> object (add, remove, ...)
+
+=item * Supply a L<Mail::Builder::Address> object. This will reset the current
+list and add the object to the list.
+
+=item * Supply a L<Mail::Builder::List> object. The object replaces the old one.
+
+=item * Scalar values will be passed to C<Mail::Builder::Address-E<gt>new>
+
+=back
 
 The L<Mail::Builder::List> package provides some basic methods for 
-manipulating the list of recipients.
-
-If you want to append an additional address to the list use
+manipulating the list of recipients. e.g.
 
  $obj->to->add(EMAIL[,NAME])
  OR
@@ -297,7 +311,7 @@ e-mail text language
 
 =head3 messageid
 
-Message ID of the e-mail. Read only and only available after the 
+Message ID of the e-mail. Read only and available only after the 
 C<build_message> or C<stingify> methods have been called.
 
 =head3 organization
@@ -314,7 +328,7 @@ e-mail subject accessor. Must be specified.
 
 =head3 charset
 
-Charset accessor. Defaults to utf8.
+Charset accessor. Defaults to 'utf-8'.
 
 =head3 htmltext
 
@@ -332,19 +346,19 @@ The following html tags will be transformed:
 
 =item * I, EM
 
-Italic text will be surounded by underscores. (_)
+Italic text will be surounded by underscores. (_italic text_)
 
 =item * H1, H2, H3, ...
 
-Headlines will be replaced by two equal signs (=)
+Headlines will be replaced with two equal signs (== Headline)
 
 =item * STRONG, B
 
-Bold text will be marked by stars (*)
+Bold text will be marked by stars (*bold text*)
 
 =item * HR
 
-A horizontal rule is replaced by 60 dashes.
+A horizontal rule is replaced with 60 dashes.
 
 =item * BR
 
@@ -352,12 +366,24 @@ Single linebreak
 
 =item * P, DIV
 
-Double linebreak
+Two linebreaks
+
+=item * IMG
+
+Prints the alt text of the image if any.
+
+=item * A
+
+Prints the link url surrounded by brackets ([http://myurl.com text])
 
 =item * UL, OL
 
-All list items will be indented and prefixed with a start (*) or an index 
-number.
+All list items will be indented with a tab and prefixed with a start 
+(*) or an index number.
+
+=item * TABLE, TR, TD, TH
+
+Tables are converted into text using L<Text::Table>
 
 =back
 
@@ -498,8 +524,10 @@ sub _convert_text
 # -------------------------------------------------------------
 {
 	my $html_element = shift;
-	my $count_param = shift;
+	my $params = shift;
 	my $plain_text = q[];
+	
+	$params ||= {};
 	
 	# Loop all children of the HTML element  
 	foreach my $html_content ($html_element->content_list) {
@@ -508,38 +536,84 @@ sub _convert_text
 			&& $html_content->isa('HTML::Element')) {
 			my $html_tagname = $html_content->tag;
 			if ($html_tagname eq 'i' || $html_tagname eq 'em') {
-				$plain_text .= '_'._convert_text($html_content,$count_param).'_';
+				$plain_text .= '_'._convert_text($html_content,$params).'_';
 			} elsif ($html_tagname =~ m/^h\d$/) {
-				$plain_text .= '=='._convert_text($html_content,$count_param).qq[\n];
+				$plain_text .= '=='._convert_text($html_content,$params).qq[\n];
 			} elsif ($html_tagname eq 'strong' || $html_tagname eq 'b') {
-				$plain_text .= '*'._convert_text($html_content,$count_param).'*';
+				$plain_text .= '*'._convert_text($html_content,$params).'*';
 			} elsif ($html_tagname eq 'hr') {
 				$plain_text .= qq[\n---------------------------------------------------------\n];
 			} elsif ($html_tagname eq 'br') {
 				$plain_text .= qq[\n];
-			} elsif ($html_tagname eq 'ul') {
-				$plain_text .= qq[\n]._convert_text($html_content,'*').qq[\n\n];
-			} elsif ($html_tagname eq 'ol') {
-				$plain_text .= qq[\n]._convert_text($html_content,'1').qq[\n\n];
+			} elsif ($html_tagname eq 'ul' || $html_tagname eq 'ol') {
+                my $count_old = $params->{count};    
+			    $params->{count} = ($html_tagname eq 'ol') ? 1:'*';
+				$plain_text .= qq[\n]._convert_text($html_content,$params).qq[\n\n];
+				if (defined $count_old) {
+				    $params->{count} = $count_old;
+				} else {
+				    delete $params->{count};
+				}
 			} elsif ($html_tagname eq 'div' || $html_tagname eq 'p') {
-				$plain_text .= _convert_text($html_content,$count_param).qq[\n\n];	
+				$plain_text .= _convert_text($html_content,$params).qq[\n\n];
+			} elsif ($html_tagname eq 'table') {	
+			    my $table_old = $params->{table}; 
+			    $params->{table} = Text::Table->new();
+			    _convert_text($html_content,$params);
+			    $params->{table}->body_rule('-','+');
+			    $params->{table}->rule('-','+');
+                $plain_text .= qq[\n].$params->{table}->rule('-').$params->{table}.$params->{table}->rule('-').qq[\n];
+                if (defined $table_old) {
+                    $params->{table} = $table_old;
+                } else {
+                    delete $params->{table};
+                }
+            } elsif ($html_tagname eq 'tr' 
+                && defined $params->{table}) { 
+                my $tablerow_old = $params->{tablerow}; 
+                $params->{tablerow} = [];
+                _convert_text($html_content,$params);
+                $params->{table}->add(@{$params->{tablerow}});
+                if (defined $tablerow_old) {
+                    $params->{tablerow} = $tablerow_old;
+                } else {
+                    delete $params->{tablerow};
+                }
+            } elsif (($html_tagname eq 'td' || $html_tagname eq 'th') && $params->{tablerow}) {
+                push @{$params->{tablerow}},_convert_text($html_content,$params);     
+                if ($html_content->attr('colspan')) {
+                    my $colspan = $html_content->attr('colspan') || 1;
+                    $colspan --;
+                    push @{$params->{tablerow}},''
+                        for (1..$colspan);
+                }
+            } elsif ($html_tagname eq 'img' && $html_content->attr('alt')) {
+                $plain_text .= '['.$html_content->attr('alt').']';  
+			} elsif ($html_tagname eq 'a' && $html_content->attr('href')) {
+			    $plain_text .= '['.$html_content->attr('href').' '._convert_text($html_content,$params).']';	
 			} elsif ($html_tagname eq 'li') {
 				$plain_text .= qq[\n\t];
-				$count_param ||= '*';
-				if ($count_param eq '*') {
+				$params->{count} ||= '*';
+				if ($params->{count} eq '*') {
 					$plain_text .= '*';
-				} elsif ($count_param =~ /^\d+$/) {
-					$plain_text .= $count_param.'.';
-					$count_param ++;
+				} elsif ($params->{count} =~ /^\d+$/) {
+					$plain_text .= $params->{count}.'.';
+					$params->{count} ++;
 				}
 				$plain_text .= q[ ]._convert_text($html_content);
+			} elsif ($html_tagname eq 'pre') {
+                $params->{pre} = 1;
+                $plain_text .= qq[\n]._convert_text($html_content,$params).qq[\n\n];
+                delete $params->{pre};
 			} else {
-				$plain_text .= _convert_text($html_content,$count_param);
+				$plain_text .= _convert_text($html_content,$params);
 			}
 	    # CDATA
 		} else {
-			$html_element =~ s/(\n|\n)//g;
-			$html_element =~ s/(\t|\n)/ /g;
+		    unless ($params->{pre}) {
+    			$html_element =~ s/(\n|\n)//g;
+    			$html_element =~ s/(\t|\n)/ /g;
+		    }
 			$plain_text .= $html_content;
 		}
 	}
@@ -579,6 +653,7 @@ sub _build_text
 			%mime_params,
 			Type		=> q[multipart/alternative],
 			Boundary	=> $obj->_get_boundary(),
+			Encoding    => 'binary',
 		);
 		
 		# Add the plaintext entity first
@@ -624,6 +699,7 @@ sub _build_html
 			%mime_params,
 			Type		=> q[multipart/related],
 			Boundary	=> $obj->_get_boundary(),
+			Encoding    => 'binary',
 		);
 		# Add the html body
 		$mime_part->add_part(build MIME::Entity (
@@ -661,7 +737,7 @@ notified of progress on your bug as I make changes.
 
 =head1 AUTHOR
 
-    Maros Kollar
+    Maroš Kollár
     CPAN ID: MAROS
     maros [at] k-1.com
     http://www.k-1.com
@@ -669,7 +745,6 @@ notified of progress on your bug as I make changes.
 =head1 COPYRIGHT
 
 Mail::Builder is Copyright (c) 2007,2008 Maroš Kollár.
-All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

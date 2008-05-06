@@ -1,24 +1,22 @@
+# Load the Module::Install bundled in ./inc/
+use strict;
+use inc::Module::Install;
 
-use ExtUtils::MakeMaker;
+# Define metadata
+name            'Mail-Builder';
+all_from        'lib/Mail/Builder.pm';
 
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
-WriteMakefile(
-    NAME         => 'Mail::Builder',
-    VERSION_FROM => 'lib/Mail/Builder.pm',                 # finds \$VERSION
-    AUTHOR       => 'Maros Kollar (maros [at] k-1.com)',
-    ABSTRACT     =>
-        'Create e-mail messages with attachments, html text and inline images',
-    NO_META   => 1,
-    PREREQ_PM => {
-        'Test::More'          => '0',
-        'Test::Pod::Coverage' => '0',
-        'Test::Pod'           => '0',
-        'MIME::Tools'         => '5.4',
-        'Email::Valid'        => '0',
-        'Class::Accessor'     => '0',
-        'HTML::TreeBuilder'   => '0',
-        'MIME::Types'         => '0',
-        'Email::MessageID'    => '0',
-    },
-);
+perl_version    '5.000';
+
+# Specific dependencies
+requires        'MIME::Tools'           => '5.4';
+requires        'Email::Valid'          => 0;
+requires        'Class::Accessor'       => 0;
+requires        'HTML::TreeBuilder'     => '3.00';
+requires        'MIME::Types'           => 0;
+requires        'Email::MessageID'      => 0;
+requires        'Text::Table'           => 0;
+build_requires  'Test::Pod'             => 0;
+build_requires  'Test::Pod::Coverage'   => 0;
+
+WriteAll;

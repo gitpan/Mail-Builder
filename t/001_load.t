@@ -8,5 +8,3 @@ BEGIN { use_ok( 'Mail::Builder' ); }
 
 my $object = Mail::Builder->new();
 isa_ok ($object, 'Mail::Builder');
-
-

@@ -1,6 +1,6 @@
 NAME
-    Mail::Builder - Easily create e-mails with attachments, html and inline
-    images
+    Mail::Builder - Easily create plaintext/html e-mail messages with
+    attachments, inline images
 
 SYNOPSIS
       use Mail::Builder;
@@ -17,7 +17,7 @@ SYNOPSIS
       # Send it with your favourite module (e.g. Email::Send)
       my $mailer = Email::Send->new({mailer => 'Sendmail'})->send($mail->stringify);
       
-  # Or mess with the MIME::Entity objects
+  # Or mess with MIME::Entity objects
       my $mime = $mail->build_message;
 
 DESCRIPTION
@@ -33,22 +33,22 @@ DESCRIPTION
     Addresses, attachments and inline images are handled as objects by
     helper classes:
 
-    *   "Address: Mail::Builder::Address"
+    *   Mail::Builder::Address
 
         Stores an e-mail address and a display name.
 
     *   Attachments: Mail::Builder::Attachment::File and
         Mail::Builder::Attachment::Data
 
-        This classes manage attachments which can be created either from
-        files on the filesystem or from data in memory.
+        This classes manages attachments which can be created either from
+        files in the filesystem or from data in memory.
 
     *   Inline images:Mail::Builder::Image
 
         The Address: Mail::Builder::Image class manages images that should
         be displayed in the e-mail body.
 
-    *   "Address: Mail::Builder::List"
+    *   Mail::Builder::List
 
         Helper class for handling list of varoius items (recipient lists,
         attachment lists, ...)
@@ -63,20 +63,19 @@ METHODS
     Returns the e-mail message as a string. This string can be passed to
     modules like Email::Send.
 
+    This method is just a shortcut to "$mb->build_message->stringify"
+
    build_message
     Returns the e-mail message as a MIME::Entity object. You can mess
     arround with the object, change parts, ... as you wish.
 
     Every time you call build_message the MIME::Entity object will be
-    created, which can take some time if you are sending the e-mail to many
-    recipients. In order to increase the speed of the module the
-    Mail::Builder::Attachment and Mail::Builder::Image entities will be
-    cached and only rebuilt if something has changed.
+    created, which can take some time if you are sending bulk e-mails. In
+    order to increase the processing speed Mail::Builder::Attachment and
+    Mail::Builder::Image entities will be cached and only rebuilt if
+    something has changed.
 
   Accessors
-   from
-    This is a simple constructor. It does not expect any parameters.
-
    from, returnpath, reply
     These accessors set/return the from and reply address as well as the
     returnpath for bounced messages.
@@ -85,10 +84,12 @@ METHODS
      OR
      $obj->from(Mail::Builder::Address)
 
-    This accessor always returns a Mail::Builder::Address object. If
-    parameters are provided the object will be replaced. You can either
-    suppy a Mail::Builder::Address object, or an e-mail address with an
-    optional name.
+    This accessor always returns a Mail::Builder::Address object.
+
+    To change the attribute value you can either supply a
+    Mail::Builder::Address object or scalar parameters which will be passed
+    to "Mail::Builder::Address->new". (email address, and an optional
+    display name)
 
    to, cc, bcc
      $obj->to(Mail::Builder::List)
@@ -96,17 +97,35 @@ METHODS
      $obj->to(Mail::Builder::Address)
      OR
      $obj->to(EMAIL[,NAME])
-     OR
+
+    This accessor always returns a Mail::Builder::List object containing
+    Mail::Builder::Address objects.
+
+    To alter the values you can either
+
+    *   Manipulate the Mail::Builder::List object (add, remove, ...)
+
+    *   Supply a Mail::Builder::Address object. This will reset the current
+        list and add the object to the list.
+
+    *   Supply a Mail::Builder::List object. The object replaces the old
+        one.
+
+    *   Scalar values will be passed to "Mail::Builder::Address->new"
+
+    The Mail::Builder::List package provides some basic methods for
+    manipulating the list of recipients. e.g.
+
      $obj->to->add(EMAIL[,NAME])
      OR
      $obj->to->add(Mail::Builder::Address)
 
-    This accessor always returns a Mail::Builder::List object. If you supply
-    a Mail::Builder::List the object will be replaced. If you supply a
-    Mail::Builder::Address object or an e-mail address (with an optional
-    name), the new address will be appended to the list of recipients. The
-    Mail::Builder::List package provides some basic methods for manipulating
-    the list of recipients.
+   language
+    e-mail text language
+
+   messageid
+    Message ID of the e-mail. Read only and available only after the
+    "build_message" or "stingify" methods have been called.
 
    organization
     Accessor for the name of the senders organisation.
@@ -116,10 +135,10 @@ METHODS
     3.
 
    subject
-    e-mail subject accessor.
+    e-mail subject accessor. Must be specified.
 
    charset
-    charset accessor. Defaults to utf8.
+    Charset accessor. Defaults to 'utf-8'.
 
    htmltext
     HTML mail body accessor.
@@ -133,19 +152,19 @@ METHODS
 
     *   I, EM
 
-        Italic text will be sorounded by underscores. (_)
+        Italic text will be surounded by underscores. (_italic text_)
 
     *   H1, H2, H3, ...
 
-        Headnlines will be replaced by two equal signs (=)
+        Headlines will be replaced with two equal signs (== Headline)
 
     *   STRONG, B
 
-        Bold text will be marked by stars (*)
+        Bold text will be marked by stars (*bold text*)
 
     *   HR
 
-        A horizontal rule is replaced by 60 dashes.
+        A horizontal rule is replaced with 60 dashes.
 
     *   BR
 
@@ -153,12 +172,24 @@ METHODS
 
     *   P, DIV
 
-        Duoble linebreak
+        Two linebreaks
+
+    *   IMG
+
+        Prints the alt text of the image if any.
+
+    *   A
+
+        Prints the link url surrounded by brackets ([http://myurl.com text])
 
     *   UL, OL
 
-        All list items will be indented and prefixed with a start (*) or an
-        index number.
+        All list items will be indented with a tab and prefixed with a start
+        (*) or an index number.
+
+    *   TABLE, TR, TD, TH
+
+        Tables are converted into text using Text::Table
 
    attachment
      $obj->attachment(Mail::Builder::List)
@@ -166,15 +197,22 @@ METHODS
      $obj->attachment(Mail::Builder::Attachment)
      OR
      $obj->attachment(PATH[,NAME,MIME])
-     OR
+
+    This accessor always returns a Mail::Builder::List object. If you supply
+    a Mail::Builder::List the list will be replaced.
+
+    If you pass a Mail::Builder::Attachment object or a scalar path (with an
+    optional name an mime type) the current list will be reset and the new
+    attachment will be added.
+
+    The Mail::Builder::List package provides some basic methods for
+    manipulating the list of recipients.
+
+    If you want to append an additional attachment to the list use
+
      $obj->attachment->add(PATH[,NAME,MIME])
      OR
      $obj->attachment->add(Mail::Builder::Attachment)
-
-    This accessor always returns a Mail::Builder::List object. If you supply
-    a Mail::Builder::List object it will be replaced. If you supply a
-    Mail::Builder::Attachment object or a path to a file (with an optional
-    name an mime type), the new attachment will be appended to the list.
 
    image
      $obj->image(Mail::Builder::List)
@@ -182,19 +220,26 @@ METHODS
      $obj->image(Mail::Builder::Image)
      OR
      $obj->image(PATH[,ID])
-     OR
+
+    This accessor always returns a Mail::Builder::List object. If you supply
+    a Mail::Builder::List the list will be replaced.
+
+    If you pass a Mail::Builder::Image object or a scalar path (with an
+    optional id) the current list will be reset and the new image will be
+    added.
+
+    The Mail::Builder::List package provides some basic methods for
+    manipulating the list of recipients.
+
+    If you want to append an additional attachment to the list use
+
      $obj->image->add(PATH[,ID])
      OR
      $obj->image->add(Mail::Builder::Image)
 
-    This accessor always returns a Mail::Builder::List object. If you supply
-    a Mail::Builder::List object it will be replaced. If you supply a
-    Mail::Builder::Image object or a path to a file (with an optional id),
-    the new image will be appended to the list.
-
     You can embed the image into the html mail body code by referencing the
-    ID. If you didn't provide an ID the lowercase filename without the
-    extension will be used.
+    ID. If you don't provide an ID the lowercase filename without the
+    extension will be used as the ID.
 
      <img src="cid:logo"/>
 
@@ -207,14 +252,13 @@ SUPPORT
     be notified of progress on your bug as I make changes.
 
 AUTHOR
-        Maros Kollar
+        Maroš Kollár
         CPAN ID: MAROS
         maros [at] k-1.com
         http://www.k-1.com
 
 COPYRIGHT
-    Mail::Builder is Copyright (c) 2006,2007 Maroš Kollár. All rights
-    reserved.
+    Mail::Builder is Copyright (c) 2007,2008 Maroš Kollár.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
