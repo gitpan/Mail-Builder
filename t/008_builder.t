@@ -2,7 +2,7 @@
 
 # t/008_builder.t - check if everything works well toghether
 
-use Test::More tests => 65;
+use Test::More tests => 63;
 
 use Mail::Builder;
 
@@ -17,8 +17,6 @@ my $replyaddress = Mail::Builder::Address->new('reply@test.com','Reply name');
 ok($object->reply($replyaddress),'Set reply address');
 isa_ok($object->reply(),'Mail::Builder::Address');
 ok($object->priority('9'),'Set priority');
-ok($object->charset('iso-8859-1'),'Set charset');
-is($object->charset,'iso-8859-1');
 eval {
 	$object->build_message();
 };
@@ -115,11 +113,11 @@ is($mime->head->get('X-Priority'),'4'."\n");
 is($mime->head->get('Subject'),'subject'."\n");
 is($mime->parts,2);
 ok($mime = $object->stringify(),'Stringify Message');
-like($mime,qr/Content-Type: text\/html; charset="iso-8859-1"/);
+like($mime,qr/Content-Type: text\/html; charset="utf-8"/);
 like($mime,qr/------_=_NextPart_002_/);
 
 my $object2 = Mail::Builder->new();
-ok($object2->to->add('recipient2@test.com'));
+ok($object2->to->add('recipient2@test.com','nice üft-8 nämé'));
 ok($object2->from('from2@test.com','me'));
 ok($object2->subject('Testmail'));
 ok($object2->plaintext(qq[Text]));
@@ -128,7 +126,7 @@ is($object2->attachment->length,1);
 ok($mime = $object2->build_message(),'Build Message');
 isa_ok($mime,'MIME::Entity');
 isa_ok($mime->head,'MIME::Head');
-is($mime->head->get('To'),'<recipient2@test.com>'."\n");
+is($mime->head->get('To'),'"=?UTF-8?B?bmljZSDDg8K8ZnQtOCBuw4PCpG3Dg8Kp?=" <recipient2@test.com>'."\n");
 is($mime->head->get('Subject'),'Testmail'."\n");
 is($mime->head->get('From'),'"me" <from2@test.com>'."\n");
 is($mime->parts,2);

@@ -77,10 +77,11 @@ sub serialize {
     
     unless ($obj->{'id'}) {
         $obj->{'id'} = $obj->{'path'};
-        $obj->{'id'} =~ s/(^[\/]+)$/$1/;
-        $obj->{'id'} =~ s/^(.+)\.(JPE?G|GIF|PNG)$/$1/i;
+        #$obj->{'id'} =~ s/(^[\/]+)$/$1/;
+        $obj->{'id'} =~ s/^.+[\/\\]//;
+        $obj->{'id'} =~ s/(.+)\.(JPE?G|GIF|PNG)$/$1/i;
     }
-    
+
     $obj->{'cache'} = build MIME::Entity(
         Disposition     => 'inline',
         Type            => qq[image/$obj->{'type'}],

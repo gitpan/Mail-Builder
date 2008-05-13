@@ -8,10 +8,9 @@ use base qw(Class::Accessor);
 
 use Carp;
 
+use Encode qw(encode decode); 
 use MIME::Entity;
-use HTML::TreeBuilder;
 use Email::MessageID;
-use Text::Table;
 
 use Mail::Builder::List;
 use Mail::Builder::Address;
@@ -20,11 +19,11 @@ use Mail::Builder::Attachment::File;
 use Mail::Builder::Attachment::Data;
 use Mail::Builder::Image;
 
-__PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority charset language));
+__PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority language));
 __PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 =head1 NAME
 
@@ -54,8 +53,8 @@ inline images
 
 This module helps you to build e-mails with attachments, inline images, 
 multiple recipients, ... without having to worry about the underlying MIME
-stuff. Mail::Builder relies heavily on the L<MIME::Entity> module from
-the L<MIME::Tools> distribution. 
+stuff and encoding issues. Mail::Builder relies heavily on the 
+L<MIME::Entity> module from the L<MIME::Tools> distribution. 
 
 The module will create the correct MIME bodies, headers and containers 
 (multipart/mixed, multipart/related, multipart/alternative) depending on if
@@ -111,7 +110,6 @@ sub new {
 		bcc			=> Mail::Builder::List->new('Mail::Builder::Address'),
 		priority	=> 3,
 		subject		=> '',
-		charset     => 'utf-8',
 		plaintext	=> undef,
 		htmltext	=> undef,
 		language    => undef,
@@ -171,13 +169,13 @@ sub build_message {
         'To'            => $obj->{'to'}->join,
         'Cc'            => $obj->{'cc'}->join,
         'Bcc'           => $obj->{'bcc'}->join,
-        'Subject'       => $obj->{'subject'},
+        'Subject'       => encode('MIME-Header',$obj->{'subject'}),
         'Message-ID'    => $obj->{'messageid'},
         'X-Priority'    => $obj->{'priority'},
         'X-Mailer'      => "Mail::Builder with MIME::Tools",
     );
     
-    # Set reply
+    # Set reply address
     if (defined $obj->{'reply'}) {
         $email_header{'Reply-To'} = $obj->{'reply'}->serialize;
     }
@@ -189,19 +187,21 @@ sub build_message {
     
     # Set return path
     if (defined $obj->{'returnpath'}) {
-        $obj->{'returnpath'}->name(undef);
-        $email_header{'Return-Path'} = $obj->{'returnpath'}->serialize();
+        $email_header{'Return-Path'} = $obj->{'returnpath'}->email();
     } elsif (defined $obj->{'reply'}) {
-        $email_header{'Return-Path'} = $obj->{'reply'}->serialize();
+        $email_header{'Return-Path'} = $obj->{'reply'}->email();
     } else {
-        $email_header{'Return-Path'} = $obj->{'from'}->serialize();
+        $email_header{'Return-Path'} = $obj->{'from'}->email();
     } 
     
     # Set organizsation
-    $email_header{'Organization'} = $obj->{'organization'} if ($obj->{'organization'});
+    $email_header{'Organization'} = encode('MIME-Header', $obj->{'organization'})
+        if ($obj->{'organization'});
     
     # Build e-mail entity
     my $mime_entity;
+    
+    # With attachments
     if ($obj->{'attachment'}->length()) {
         $mime_entity = build MIME::Entity(
             %email_header,
@@ -213,6 +213,7 @@ sub build_message {
             $mime_entity->add_part($_->serialize());
         }
         $mime_entity->add_part($obj->_build_text(Top => 0));
+    # Without attachments
     } else {
         $mime_entity = $obj->_build_text(%email_header);
     }
@@ -253,6 +254,14 @@ sub returnpath {
 sub reply {
     my $obj = shift;
     return $obj->_address('reply',@_);
+}
+
+=head3 charset (DEPRECATED)
+
+=cut
+
+sub charset {
+    warn('DEPRECATED: The charset accessor has been removed.')
 }
 
 =head3 to, cc, bcc
@@ -318,17 +327,13 @@ C<build_message> or C<stingify> methods have been called.
  
 Accessor for the name of the senders organisation.
 
-=head3 prioriy
+=head3 priority
 
 Priority accessor. Accepts values from 1 to 5. The default priority is 3.
 
 =head3 subject
 
 e-mail subject accessor. Must be specified.
-
-=head3 charset
-
-Charset accessor. Defaults to 'utf-8'.
 
 =head3 htmltext
 
@@ -383,7 +388,7 @@ All list items will be indented with a tab and prefixed with a start
 
 =item * TABLE, TR, TD, TH
 
-Tables are converted into text using L<Text::Table>
+Tables are converted into text using L<Text::Table>.
 
 =back
 
@@ -520,7 +525,7 @@ sub _get_boundary
 sub _convert_text
 # Type: Private class method
 # Parameters: HTML::Element[,LIST OPTION]
-# Returnvalue: Text
+# Returnvalue: String
 # -------------------------------------------------------------
 {
 	my $html_element = shift;
@@ -556,7 +561,9 @@ sub _convert_text
 				}
 			} elsif ($html_tagname eq 'div' || $html_tagname eq 'p') {
 				$plain_text .= _convert_text($html_content,$params).qq[\n\n];
-			} elsif ($html_tagname eq 'table') {	
+			} elsif ($html_tagname eq 'table') {
+			    require Text::Table; # Load Text::Table lazily
+			    	
 			    my $table_old = $params->{table}; 
 			    $params->{table} = Text::Table->new();
 			    _convert_text($html_content,$params);
@@ -605,6 +612,11 @@ sub _convert_text
                 $params->{pre} = 1;
                 $plain_text .= qq[\n]._convert_text($html_content,$params).qq[\n\n];
                 delete $params->{pre};
+            } elsif ($html_tagname eq 'head'
+                || $html_tagname eq 'script'
+                || $html_tagname eq 'frameset'
+                || $html_tagname eq 'style') {
+                next;
 			} else {
 				$plain_text .= _convert_text($html_content,$params);
 			}
@@ -634,7 +646,9 @@ sub _build_text
     # Build plaintext message from HTML
 	if (defined $obj->{'htmltext'}
 		&& ! defined($obj->{'plaintext'})) {
-		# Parse HTML tree
+		# Parse HTML tree. Load HTML::TreeBuilder lazily
+		require HTML::TreeBuilder;
+		
 		my $html_tree = HTML::TreeBuilder->new_from_content($obj->{'htmltext'});
 		# Only use the body
 		my $html_body = $html_tree->find('body');
@@ -659,7 +673,7 @@ sub _build_text
 		# Add the plaintext entity first
 		$mime_part->add_part(build MIME::Entity (
 			Top 		=> 0,
-			Type		=> qq[text/plain; charset="$obj->{'charset'}"],
+			Type		=> qq[text/plain; charset="utf-8"],
 			Data		=> $obj->{'plaintext'},
 			Encoding	=> 'quoted-printable',
 		));
@@ -670,7 +684,7 @@ sub _build_text
 	} else {
 		$mime_part = build MIME::Entity (
 			%mime_params,
-			Type		=> qq[text/plain; charset="$obj->{'charset'}"],
+			Type		=> qq[text/plain; charset="utf-8"],
 			Data		=> $obj->{'plaintext'},
 			Encoding	=> 'quoted-printable',
 		);
@@ -704,7 +718,7 @@ sub _build_html
 		# Add the html body
 		$mime_part->add_part(build MIME::Entity (
 			Top 		=> 0,
-			Type		=> qq[text/html; charset="$obj->{'charset'}"],
+			Type		=> qq[text/html; charset="utf-8"],
 			Data		=> $obj->{'htmltext'},
 			Encoding	=> 'quoted-printable',
 		));
@@ -716,7 +730,7 @@ sub _build_html
 	} else {
 		$mime_part = build MIME::Entity (
 			%mime_params,
-			Type		=> qq[text/html; charset="$obj->{'charset'}"],
+			Type		=> qq[text/html; charset="utf-8"],
 			Data		=> $obj->{'htmltext'},
 			Encoding	=> 'quoted-printable',
 		);
@@ -726,7 +740,37 @@ sub _build_html
 
 
 
-1;
+return "Thou shalt not send SPAM with this module";
+
+=head1 CAVEATS
+
+If you want to send multiple e-mail messages from one Mail::Builder object
+(e.g. a solicited mailing to multiple recipients) you have to pay special
+attention, or else you might end up with mixed contents and growing 
+recipients lists.
+
+ # Example for a mass mailing
+ foreach my $recipient (@recipients) {
+     $mb->to->reset; # Remove all recipients
+     
+     $mb->to->add($recipient); # Add current recipuent
+     
+     # Alternatively you could use $mb->to($recipient); which has the
+     # same effect as the two previous commands. Same goes for 'cc' and 'bcc'
+     
+     $mb->plaintext(undef);
+     # Reset plaintext, otherwise it will not be autogenerated from htmltext
+     
+     $mb->htmltext(qq[<h1>Hello $recipient!</h1> Text, yadda yadda! ]);
+     
+     my $mail = $mb->stringify();
+     
+     # Send $mail ,,,
+ }
+ 
+From 1.10 on Mail::Builder only supports utf-8 charsets for mails. Supporting
+multiple encodings turned out to be error prone and not necessary since all
+modern mail clients support utf-8.
 
 =head1 SUPPORT
 
@@ -746,8 +790,11 @@ notified of progress on your bug as I make changes.
 
 Mail::Builder is Copyright (c) 2007,2008 Maroš Kollár.
 
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under 
+the same terms as Perl itself as long it is not used for sending 
+unsolicited mail (SPAM): 
+
+ "Thou shalt not send SPAM with this module."
 
 The full text of the license can be found in the
 LICENSE file included with this module.

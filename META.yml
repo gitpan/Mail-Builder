@@ -20,9 +20,10 @@ requires:
   Class::Accessor: 0
   Email::MessageID: 0
   Email::Valid: 0
+  Encode: 0
   HTML::TreeBuilder: 3.00
   MIME::Tools: 5.4
   MIME::Types: 0
   Text::Table: 0
   perl: 5.000
-version: 1.09
+version: 1.10

@@ -15,6 +15,7 @@ requires        'Class::Accessor'       => 0;
 requires        'HTML::TreeBuilder'     => '3.00';
 requires        'MIME::Types'           => 0;
 requires        'Email::MessageID'      => 0;
+requires        'Encode'                => 0;
 requires        'Text::Table'           => 0;
 build_requires  'Test::Pod'             => 0;
 build_requires  'Test::Pod::Coverage'   => 0;

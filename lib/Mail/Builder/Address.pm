@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Encode qw/encode decode/; 
 use Email::Valid;
 
 use vars qw($VERSION);
@@ -73,7 +74,12 @@ sub serialize {
     my $obj = shift;
     return undef unless ($obj->{email});
     my $return_value = qq[<$obj->{'email'}>];
-    $return_value = qq["$obj->{'name'}" ].$return_value if $obj->{'name'};
+    
+    if ($obj->{'name'}) {
+        my $name = encode('MIME-Header', $obj->{'name'});
+        $return_value = qq["$name" ].$return_value;
+    }
+
     return $return_value;
 }
 

@@ -8,6 +8,8 @@ use Carp;
 
 use base qw(Mail::Builder::Attachment);
 
+use Encode qw(encode decode); 
+
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
@@ -114,7 +116,7 @@ sub serialize {
         Path        => $obj->{'path'},
         Type        => $obj->{'mime'},
         Top         => 0,
-        Filename    => $obj->{'name'},
+        Filename    => encode('MIME-Header', $obj->{'name'}),
         Encoding    => 'base64',
         Disposition => 'attachment',
     );

@@ -2,7 +2,7 @@
 
 # t/007_image.t - check module handling the images
 
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 use Mail::Builder;
 
@@ -25,3 +25,6 @@ eval {
 	$image = Mail::Builder::Image->new('t/testfile.txt');
 };
 like($@,qr/Invalid file type/);
+$image = Mail::Builder::Image->new('t/testfile.gif');
+ok ($mime = $image->serialize,'Get MIME::Entity');
+is ($image->id, 'testfile');
