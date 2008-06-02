@@ -12,7 +12,7 @@ ok($address = Mail::Builder::Address->new('test@test.com'),'Create simple object
 isa_ok ($address, 'Mail::Builder::Address');
 is ($address->email, 'test@test.com');
 is ($address->name, undef);
-is ($address->serialize, '<test@test.com>');
+is ($address->serialize, 'test@test.com');
 ok ($address->name('"This is a Test"'), 'Set new name');
 is ($address->serialize, '"\"This is a Test\"" <test@test.com>');
 ok ($address->email('othertest@test2.com'), 'Set new email');
@@ -20,4 +20,4 @@ is ($address->email, 'othertest@test2.com');
 eval {
 	$address->email('messed.up.@-address.comx');
 };
-like($@,qr/e\-mail adress is not valid at/);
+like($@,qr/e\-mail address is not valid at/);

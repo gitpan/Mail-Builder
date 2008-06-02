@@ -1,5 +1,5 @@
 ---
-abstract: 'Easily create plaintext/html e-mail messages with attachments, '
+abstract: 'Easily create plaintext/html e-mail messages with attachments'
 author:
   - 'Maroš Kollár'
 build_requires:
@@ -26,4 +26,4 @@ requires:
   MIME::Types: 0
   Text::Table: 0
   perl: 5.000
-version: 1.10
+version: 1.11

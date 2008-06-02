@@ -9,6 +9,8 @@ use Carp;
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
+=encoding utf8
+
 =head1 NAME
 
 Mail::Builder::Image - Helper module for handling inline images
@@ -121,8 +123,6 @@ sub compare {
     }
 }
 
-
-
 =head2 Accessors
 
 =head3 id
@@ -155,9 +155,13 @@ sub path {
     my $obj = shift;
     if (@_) {
         $obj->{'path'} = shift;
-        croak(q[Filename missing]) unless ($obj->{'path'});
-        croak(qq[Invalid file type: $obj->{'path'}]) unless ($obj->{'path'} =~ /.(JPE?G|GIF|PNG)$/i);
-        croak(qq[Could not find/open file: $obj->{'path'}]) unless (-r $obj->{'path'});
+        croak(q[Filename missing]) 
+            unless ($obj->{'path'});
+        croak(qq[Invalid file type: $obj->{'path'}]) 
+            unless ($obj->{'path'} =~ /.(JPE?G|GIF|PNG)$/i);
+        croak(qq[Could not find/open file: $obj->{'path'}]) 
+            unless (-r $obj->{'path'});
+         
         $obj->{'cache'} = undef;
         $obj->{'type'} = lc($1);
         $obj->{'type'} =~ s/^jpe?g?$/jpeg/;

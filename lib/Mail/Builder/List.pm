@@ -9,6 +9,8 @@ use Carp;
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
+=encoding utf8
+
 =head1 NAME
 
 Mail::Builder::List - Helper module for handling various lists 
@@ -63,6 +65,7 @@ Constructor that converts an array reference into a Mail::Builder::List
 object. The list type is defined by the first element of the array.
 
 =cut
+
 sub convert {
     my $class = shift;
     my $list_data = shift; 
@@ -113,7 +116,9 @@ sub add {
 	my $obj = shift;
 	my $value = shift;
 	if (ref($value)) {
-		croak(qq[Invalid item added to list: Must be of $obj->{'type'}]) unless ($value->isa($obj->{'type'}));
+		croak(qq[Invalid item added to list: Must be of $obj->{'type'}]) 
+		    unless ($value->isa($obj->{'type'}));
+		
 		push @{$obj->{'list'}}, $value;
 	} else {
 		my $object = $obj->{'type'}->new($value,@_);
@@ -206,7 +211,10 @@ Serializes all items in the list and joins them using the given string.
 sub join {
     my $obj = shift;
     my $join_string = shift || ','; 
-    return CORE::join $join_string, grep { $_ } map { $_->serialize } @{$obj->{'list'}};
+    return CORE::join $join_string, 
+        grep { $_ }
+        map { $_->serialize } 
+        @{$obj->{'list'}};
 }
 
 =head3 has
@@ -232,8 +240,7 @@ sub has {
     return 0;
 }
 
-
-=head2 Accessor
+=head2 Accessors
 
 =head3 type
 
@@ -259,7 +266,6 @@ sub list {
 
 
 1;
-
 
 __END__
 

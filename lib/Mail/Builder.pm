@@ -1,6 +1,6 @@
-# ================================================================
+# ============================================================================
 package Mail::Builder;
-# ================================================================
+# ============================================================================
 use strict;
 use warnings;
 
@@ -23,12 +23,14 @@ __PACKAGE__->mk_accessors(qw(plaintext htmltext subject organization priority la
 __PACKAGE__->mk_ro_accessors(qw(messageid));
 
 use vars qw($VERSION);
-$VERSION = '1.10';
+$VERSION = '1.11';
+
+=encoding utf8
 
 =head1 NAME
 
-Mail::Builder - Easily create plaintext/html e-mail messages with attachments, 
-inline images
+Mail::Builder - Easily create plaintext/html e-mail messages with attachments
+and inline images
 
 =head1 SYNOPSIS
 
@@ -47,18 +49,22 @@ inline images
   my $mailer = Email::Send->new({mailer => 'Sendmail'})->send($mail->stringify);
   
   # Or mess with MIME::Entity objects
-  my $mime = $mail->build_message; 
+  my $mime = $mail->build_message;
+  $mime-> ....
 
 =head1 DESCRIPTION
 
-This module helps you to build e-mails with attachments, inline images, 
-multiple recipients, ... without having to worry about the underlying MIME
-stuff and encoding issues. Mail::Builder relies heavily on the 
+This module helps you to build correct e-mails with attachments, inline 
+images, multiple recipients, ... without having to worry about the underlying
+MIME stuff and encoding issues. Mail::Builder relies heavily on the 
 L<MIME::Entity> module from the L<MIME::Tools> distribution. 
 
 The module will create the correct MIME bodies, headers and containers 
 (multipart/mixed, multipart/related, multipart/alternative) depending on if
 you use attachments, HTML text and inline images.
+
+Furthermore it will encode non-ascii header data and autogenerate plaintext
+messages from html content.
 
 Addresses, attachments and inline images are handled as objects by helper
 classes:
@@ -71,18 +77,18 @@ Stores an e-mail address and a display name.
 
 =item * Attachments: L<Mail::Builder::Attachment::File> and L<Mail::Builder::Attachment::Data>
 
-This classes manages attachments which can be created either from files in the
+This classes manage attachments which can be created either from files in the
 filesystem or from data in memory.
 
 =item * Inline images:L<Mail::Builder::Image>
 
-The Address: Mail::Builder::Image class manages images that should be 
-displayed in the e-mail body.
+The Mail::Builder::Image class manages images that should be displayed in the 
+html e-mail body. (E<lt>img src="cid:imageid" /E<gt>)
 
 =item * L<Mail::Builder::List>
 
-Helper class for handling list of varoius items (recipient lists, attachment
-lists, ...)
+Helper class for handling list of varoius items (recipients lists, attachments
+list, images list)
 
 =back
 
@@ -105,6 +111,7 @@ sub new {
 		reply		=> undef,
 		organization=> undef,
 		returnpath	=> undef,
+		sender      => undef,
 		to			=> Mail::Builder::List->new('Mail::Builder::Address'),
 		cc			=> Mail::Builder::List->new('Mail::Builder::Address'),
 		bcc			=> Mail::Builder::List->new('Mail::Builder::Address'),
@@ -139,8 +146,16 @@ sub stringify {
 
 =head3 build_message
 
-Returns the e-mail message as a MIME::Entity object. You can mess arround with
-the object, change parts, ... as you wish. 
+ my $entity = $mb->build_message();
+ 
+ # Print the entire message:
+ $entity->print(\*STDOUT);
+ 
+ # Stringify the entire message:
+ print $entity->stringify; 
+
+Returns the e-mail message as a L<MIME::Entity> object. You can mess around 
+with the object, change parts, ... as you wish. 
 
 Every time you call build_message the MIME::Entity object will be created, 
 which can take some time if you are sending bulk e-mails. In 
@@ -153,11 +168,16 @@ has changed.
 sub build_message {
     my $obj = shift;
     
-    croak(q[Recipient address missing]) unless ($obj->{'to'}->length());
-    croak(q[Sender address missing]) unless (defined $obj->{'from'});
-    croak(q[e-mail subject missing]) unless ($obj->{'subject'});
-    croak(q[e-mail content missing]) unless ($obj->{'plaintext'} || $obj->{'htmltext'});
-    croak(q[Invalid priority (only 1-5)]) unless (defined($obj->{'priority'}) && $obj->{'priority'} =~ /^[1-5]$/);
+    croak(q[Recipient address missing]) 
+        unless ($obj->{'to'}->length());
+    croak(q[From address missing]) 
+        unless (defined $obj->{'from'});
+    croak(q[e-mail subject missing]) 
+        unless ($obj->{'subject'});
+    croak(q[e-mail content missing]) 
+        unless ($obj->{'plaintext'} || $obj->{'htmltext'});
+    croak(q[Invalid priority (only 1-5)]) 
+        unless (defined($obj->{'priority'}) && $obj->{'priority'} =~ /^[1-5]$/);
     
     # Set message ID
     $obj->{'messageid'} = Email::MessageID->new();
@@ -172,12 +192,17 @@ sub build_message {
         'Subject'       => encode('MIME-Header',$obj->{'subject'}),
         'Message-ID'    => $obj->{'messageid'},
         'X-Priority'    => $obj->{'priority'},
-        'X-Mailer'      => "Mail::Builder with MIME::Tools",
+        'X-Mailer'      => "Mail::Builder $VERSION with MIME::Tools",
     );
     
     # Set reply address
     if (defined $obj->{'reply'}) {
         $email_header{'Reply-To'} = $obj->{'reply'}->serialize;
+    }
+    
+    # Set sender address
+    if (defined $obj->{'sender'}) {
+        $email_header{'Sender'} = $obj->{'sender'}->serialize;
     }
     
     # Set language
@@ -220,12 +245,11 @@ sub build_message {
     return $mime_entity;
 }
 
-
 =head2 Accessors 
 
-=head3 from, returnpath, reply
+=head3 from, returnpath, reply, sender
 
-These accessors set/return the from and reply address as well as the
+These accessors set/return the from, sender and reply address as well as the
 returnpath for bounced messages.
 
  $obj->from(EMAIL[,NAME])
@@ -249,6 +273,11 @@ sub from {
 sub returnpath {
     my $obj = shift;
     return $obj->_address('returnpath',@_);
+}
+
+sub sender {
+    my $obj = shift;
+    return $obj->_address('sender',@_);
 }
 
 sub reply {
@@ -284,9 +313,11 @@ To alter the values you can either
 =item * Supply a L<Mail::Builder::Address> object. This will reset the current
 list and add the object to the list.
 
-=item * Supply a L<Mail::Builder::List> object. The object replaces the old one.
+=item * Supply a L<Mail::Builder::List> object. The list object replaces the 
+old one if the list types match
 
-=item * Scalar values will be passed to C<Mail::Builder::Address-E<gt>new>
+=item * Scalar values will be passed to C<Mail::Builder::Address-E<gt>new>. 
+The returned object will be added to the object list.
 
 =back
 
@@ -325,7 +356,8 @@ C<build_message> or C<stingify> methods have been called.
 
 =head3 organization
  
-Accessor for the name of the senders organisation.
+Accessor for the name of the sender's organisation. This header field is not
+part of the RFC 4021, however supported by many mailer applications.
 
 =head3 priority
 
@@ -351,11 +383,11 @@ The following html tags will be transformed:
 
 =item * I, EM
 
-Italic text will be surounded by underscores. (_italic text_)
+Italic text will be surrounded by underscores. (_italic text_)
 
 =item * H1, H2, H3, ...
 
-Headlines will be replaced with two equal signs (== Headline)
+Two equal signs are prepended to headlines (== Headline)
 
 =item * STRONG, B
 
@@ -739,10 +771,7 @@ sub _build_html
 }
 
 
-
-return "Thou shalt not send SPAM with this module";
-
-=head1 CAVEATS
+=head1 EXAMPLE
 
 If you want to send multiple e-mail messages from one Mail::Builder object
 (e.g. a solicited mailing to multiple recipients) you have to pay special
@@ -752,32 +781,44 @@ recipients lists.
  # Example for a mass mailing
  foreach my $recipient (@recipients) {
      $mb->to->reset; # Remove all recipients
-     
-     $mb->to->add($recipient); # Add current recipuent
+     $mb->to->add($recipient); # Add current recipient
      
      # Alternatively you could use $mb->to($recipient); which has the
      # same effect as the two previous commands. Same goes for 'cc' and 'bcc'
      
      $mb->plaintext(undef);
      # Reset plaintext, otherwise it will not be autogenerated from htmltext
+     # after the first run
      
      $mb->htmltext(qq[<h1>Hello $recipient!</h1> Text, yadda yadda! ]);
      
      my $mail = $mb->stringify();
      
-     # Send $mail ,,,
+     # Send $mail ... 
  }
+ 
+=head1 CAVEATS 
  
 From 1.10 on Mail::Builder only supports utf-8 charsets for mails. Supporting
 multiple encodings turned out to be error prone and not necessary since all
 modern mail clients support utf-8.
 
+Watch out when sending Mail::Builder generated mails with 
+L<Email::Send::SMTP>: The 'Return-Path' headers are ignored by the MTA 
+since L<Email::Send::SMTP> uses the 'From' header for SMTP handshake. Postfix
+(any maybe some other MTAs) overwrites the 'Return-Path' field in the data
+with the e-mail used in the handshake ('From'). The behaviour of 
+L<Email::Send::SMTP> may however be modified by replacing the 
+C<get_env_sender> and C<get_env_recipients> methods. See L<Email::Send::SMTP>
+for more details.
+
 =head1 SUPPORT
 
 Please report any bugs or feature requests to 
 C<bug-mail-builder@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org>.  I will be notified, and then you'll automatically be 
-notified of progress on your bug as I make changes.
+L<http://rt.cpan.org/Public/Bug/Report.html?Queue=Mail::Builder>.  
+I will be notified, and then you'll automatically be notified of progress on 
+your report as I make changes.
 
 =head1 AUTHOR
 
@@ -785,6 +826,13 @@ notified of progress on your bug as I make changes.
     CPAN ID: MAROS
     maros [at] k-1.com
     http://www.k-1.com
+
+=head1 ACKNOWLEDGEMENTS 
+
+This module was written for my old employer the Centre for Social Innovation
+L<http://www.zsi.at> and is currently advanced by Revdev 
+L<http://www.revdev.at>, a nice litte software company I run with Koki and 
+Domm (L<http://search.cpan.org/~domm/>).
 
 =head1 COPYRIGHT
 
@@ -805,4 +853,4 @@ The L<Mime::Entity> module in the L<Mime::Tools> distribution.
 
 =cut
 
-1;
+"Thou shalt not send SPAM with this module";

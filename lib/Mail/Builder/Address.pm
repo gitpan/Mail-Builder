@@ -11,6 +11,7 @@ use Email::Valid;
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
+=encoding utf8
 
 =head1 NAME
 
@@ -72,15 +73,14 @@ Prints the address as required for creating the e-mail header.
 
 sub serialize {
     my $obj = shift;
-    return undef unless ($obj->{email});
-    my $return_value = qq[<$obj->{'email'}>];
     
-    if ($obj->{'name'}) {
-        my $name = encode('MIME-Header', $obj->{'name'});
-        $return_value = qq["$name" ].$return_value;
-    }
-
-    return $return_value;
+    return undef 
+        unless $obj->{email};
+        
+    return $obj->{email}
+        unless $obj->{'name'};
+          
+    return '"'.encode('MIME-Header', $obj->{'name'}).'" <'.$obj->{email}.'>';
 }
 
 =head3 compare
@@ -154,8 +154,8 @@ sub email {
 	my $obj = shift;
  	if(@_) {
 		my $email_address = shift;
-		croak(q[e-mail adress missing]) unless ($email_address);
-		croak(q[e-mail adress is not valid]) unless (Email::Valid->address($email_address));
+		croak(q[e-mail address missing]) unless ($email_address);
+		croak(q[e-mail address is not valid]) unless (Email::Valid->address($email_address));
 		$obj->{'email'} = $email_address;
 	}
 	return $obj->{'email'};

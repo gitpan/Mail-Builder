@@ -13,9 +13,11 @@ use Encode qw(encode decode);
 use vars qw($VERSION);
 $VERSION = $Mail::Builder::VERSION;
 
+=encoding utf8
+
 =head1 NAME
 
-Mail::Builder::Attachment - Helper module for handling attachments from data
+Mail::Builder::Attachment::Data - Helper module for handling attachments from data
 
 =head1 SYNOPSIS
 
