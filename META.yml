@@ -3,10 +3,13 @@ abstract: 'Easily create plaintext/html e-mail messages with attachments'
 author:
   - 'Maroš Kollár'
 build_requires:
+  ExtUtils::MakeMaker: 6.42
   Test::Pod: 0
   Test::Pod::Coverage: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.77'
+generated_by: 'Module::Install version 0.94'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -14,6 +17,7 @@ meta-spec:
 name: Mail-Builder
 no_index:
   directory:
+    - example
     - inc
     - t
 requires:
@@ -26,7 +30,10 @@ requires:
   MIME::Tools: 5.4
   MIME::Types: 0
   Text::Table: 0
+  parent: 0
   perl: 5.8.0
+  version: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.120
+  repository: git://github.com/maros/Mail-Builder.git
+version: 1.130

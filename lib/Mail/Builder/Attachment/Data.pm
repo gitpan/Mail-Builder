@@ -6,7 +6,7 @@ use warnings;
 
 use Carp;
 
-use base qw(Mail::Builder::Attachment);
+use parent qw(Mail::Builder::Attachment);
 
 use Encode qw(encode decode); 
 
@@ -23,7 +23,7 @@ Mail::Builder::Attachment::Data - Module for handling attachments from data
 
   use Mail::Builder;
   
-  my $attachment = Mail::Builder::Attachment::Data($data,'invitation.pdf','application/pdf');
+  my $attachment = new Mail::Builder::Attachment::Data($data,'invitation.pdf','application/pdf');
   $attachment->name('party_invitation.pdf');
   print $attachment->serialize;
   
@@ -70,9 +70,9 @@ sub new {
 
 =head3 compare
 
- $obj->compara(OBJECT);
+ $obj->compare(OBJECT);
  or 
- $obj->compara(DATA);
+ $obj->compare(DATA);
 
 Checks if two attachment objects contains the same data. Returns true or 
 false. The compare method does not check if the mime types and name attributes
