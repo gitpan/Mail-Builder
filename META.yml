@@ -4,12 +4,10 @@ author:
   - 'Maroš Kollár'
 build_requires:
   ExtUtils::MakeMaker: 6.42
-  Test::Pod: 0
-  Test::Pod::Coverage: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.95'
+generated_by: 'Module::Install version 1.00'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,20 +18,20 @@ no_index:
     - example
     - inc
     - t
+    - xt
 requires:
-  Class::Accessor: 0
+  Email::Address: 0
   Email::MessageID: 0
   Email::Valid: 0
   Encode: 0
   HTML::TreeBuilder: 3.00
-  IO::Lines: 0
   MIME::Tools: 5.4
   MIME::Types: 0
+  Moose: 0.94
   Text::Table: 0
-  parent: 0
   perl: 5.8.0
   version: 0
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/Mail-Builder.git
-version: 1.160
+version: 2.000
