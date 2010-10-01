@@ -28,10 +28,11 @@ requires:
   MIME::Tools: 5.4
   MIME::Types: 0
   Moose: 0.94
+  Path::Class: 0
   Text::Table: 0
   perl: 5.8.0
   version: 0
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/Mail-Builder.git
-version: 2.010
+version: 2.020
