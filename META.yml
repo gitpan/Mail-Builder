@@ -21,7 +21,7 @@ no_index:
     - xt
 requires:
   Email::Address: 0
-  Email::MessageID: 0
+  Email::MessageID: 1.400
   Email::Valid: 0
   Encode: 0
   HTML::TreeBuilder: 3.00
@@ -35,4 +35,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/Mail-Builder.git
-version: 2.030
+version: 2.040
