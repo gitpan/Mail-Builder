@@ -5,6 +5,7 @@ package Mail::Builder::Role::TypeConstraints;
 use strict;
 use warnings;
 
+use Scalar::Util qw(blessed);
 use Moose::Util::TypeConstraints;
 use Path::Class::File;
 
@@ -72,6 +73,10 @@ subtype 'Mail::Builder::Type::Mimetype'
 
 subtype 'Mail::Builder::Type::Address'
     => as class_type('Mail::Builder::Address');
+
+coerce 'Mail::Builder::Type::Address'
+    => from 'Defined'
+    => via { Mail::Builder::Address->new( $_ ) };
 
 subtype 'Mail::Builder::Type::AddressList'
     => as class_type('Mail::Builder::List')
@@ -166,7 +171,6 @@ coerce 'Mail::Builder::Type::ImageList'
         return Mail::Builder::List->new( type => 'Mail::Builder::Image', list => $result ) 
     };
 
-no Moose::Role;
 no Moose::Util::TypeConstraints;
 
 1;

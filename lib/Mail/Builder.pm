@@ -6,7 +6,7 @@ use Moose;
 
 use version;
 our $AUTHORITY = 'cpan:MAROS';
-our $VERSION = version->new("2.04");
+our $VERSION = version->new("2.05");
 
 use Mail::Builder::Role::TypeConstraints;
 
@@ -102,6 +102,7 @@ foreach my $field (qw(from reply returnpath sender)) {
     has $field => (
         is              => 'rw',
         isa             => 'Mail::Builder::Type::Address',
+        coerce          => 1,
         predicate       => 'has_'.$field,
         clearer         => 'clear'.$field,
     );
