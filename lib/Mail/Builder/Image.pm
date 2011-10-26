@@ -4,7 +4,7 @@ package Mail::Builder::Image;
 
 use Moose;
 with qw(Mail::Builder::Role::File);
-use Mail::Builder::Role::TypeConstraints;
+use Mail::Builder::TypeConstraints;
 
 use Carp;
 
@@ -230,7 +230,7 @@ Image. Can be a
 
 =item * Path (or a Path::Class::File object)
 
-=item * Filehandle (or a IO::File object)
+=item * Filehandle (or an IO::File object)
 
 =item * ScalarRef containing the image data
 

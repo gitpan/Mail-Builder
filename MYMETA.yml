@@ -7,8 +7,8 @@ build_requires:
   Test::Most: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
-distribution_type: module
-generated_by: 'Module::Install version 1.02'
+dynamic_config: 0
+generated_by: 'Module::Install version 1.02, CPAN::Meta::Converter version 2.112621'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -31,8 +31,8 @@ requires:
   Moose: 0.94
   Path::Class: 0
   Text::Table: 0
-  perl: 5.8.0
+  perl: 5.008
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/Mail-Builder.git
-version: 2.06
+version: 2.050
