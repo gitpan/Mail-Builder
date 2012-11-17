@@ -5,17 +5,16 @@ package Mail::Builder::TypeConstraints;
 use strict;
 use warnings;
 
-use Scalar::Util qw(blessed);
+use namespace::autoclean;
 use Moose::Util::TypeConstraints;
+
+use Scalar::Util qw(blessed);
 use Path::Class::File;
 
 our $VERSION = $Mail::Builder::VERSION;
-
-eval {
-    Class::MOP::load_class('Net::Domain::TLD');
-};
+our $TLDCHECK = Class::Load::try_load_class('Net::Domain::TLD'),
 our %EMAILVALID = (
-    'tldcheck'     => ($@ ? 0:1),
+    'tldcheck'     => $TLDCHECK,
 );
 
 our $TIMEPART_RE = qr/[0-5]?\d/;
@@ -215,7 +214,5 @@ coerce 'Mail::Builder::Type::ImageList'
         }
         return Mail::Builder::List->new( type => 'Mail::Builder::Image', list => $result ) 
     };
-
-no Moose::Util::TypeConstraints;
 
 1;

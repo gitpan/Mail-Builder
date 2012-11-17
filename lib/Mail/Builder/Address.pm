@@ -2,6 +2,7 @@
 package Mail::Builder::Address;
 # ============================================================================
 
+use namespace::autoclean;
 use Moose;
 use Mail::Builder::TypeConstraints;
 
@@ -185,9 +186,7 @@ sub empty {
     croak('DEPRECATED')
 }
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
-
 
 1;
 
@@ -206,7 +205,7 @@ in the %Mail::Builder::TypeConstraints::EMAILVALID hash.
 Eg. if you want to disable the check for valid TLDs you can set the 'tldcheck'
 option (without dashes 'tldcheck' and not '-tldcheck'):
 
- $Mail::Builder::TypeConstraints{tldcheck} = 0;
+ $Mail::Builder::TypeConstraints::EMAILVALID{tldcheck} = 0;
 
 Required
 

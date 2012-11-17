@@ -1,6 +1,6 @@
 # Load the Module::Install bundled in ./inc/
 use strict;
-use inc::Module::Install 0.92;
+use inc::Module::Install 1.05;
 
 my $from = 'lib/Mail/Builder.pm';
 
@@ -8,7 +8,6 @@ my $from = 'lib/Mail/Builder.pm';
 name            'Mail-Builder';
 all_from        $from;
 readme_from     $from;
-readme_markdown_from $from;
 
 perl_version    '5.008';
 
@@ -21,6 +20,7 @@ requires        'Email::MessageID'      => '1.400';
 requires        'Email::Date::Format'   => 0;
 
 requires        'Moose'                 => '0.94';
+requires        'namespace::autoclean'  => 0;
 
 requires        'Path::Class'           => 0;
 requires        'HTML::TreeBuilder'     => '3.00';
@@ -32,7 +32,7 @@ build_requires  'Test::Most'            => 0;
 author_requires 'Test::Pod'             => '1.14';
 author_requires 'Test::Pod::Coverage'   => '1.04';
 author_requires 'Test::Perl::Critic'    => 0;
-author_requires 'Module::Install::ReadmeMarkdownFromPod'=> 0;
+author_requires 'Test::NoWarnings'      => 0;
 author_requires 'Module::Install::ReadmeFromPod'        => 0;
 
 

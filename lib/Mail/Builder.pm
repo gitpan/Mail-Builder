@@ -2,9 +2,10 @@
 package Mail::Builder;
 # ============================================================================
 
+use namespace::autoclean;
 use Moose;
 
-our $VERSION = "2.07";
+our $VERSION = "2.08";
 our $AUTHORITY = 'cpan:MAROS';
 
 use Mail::Builder::TypeConstraints;
@@ -168,7 +169,7 @@ sub _generate_plaintext {
     
     if ($self->autotext
         && ($self->_plaintext_autotext == 1 || ! $self->has_plaintext)) {
-        Class::MOP::load_class('HTML::TreeBuilder');
+        Class::Load::load_class('HTML::TreeBuilder');
         
         my $html_tree = HTML::TreeBuilder->new_from_content($self->htmltext);
         # Only use the body
@@ -417,8 +418,8 @@ sub _build_html {
 
 sub _build_date {
     my ($self) = @_;
-    Class::MOP::load_class('Email::Date::Format');
-    Email::Date::Format::email_date();
+    Class::Load::load_class('Email::Date::Format');
+    return Email::Date::Format::email_date();
 }
 
 
@@ -491,10 +492,10 @@ sub build_message {
             Boundary    => $self->_get_boundary(),
             Encoding    => 'binary',
         );
+        $mime_entity->add_part($self->_build_text(Top => 0));
         foreach my $attachment ($self->attachment->list()) {
             $mime_entity->add_part($attachment->serialize());
         }
-        $mime_entity->add_part($self->_build_text(Top => 0));
         # ... without attachments
     } else {
         $mime_entity = $self->_build_text(%email_header);
@@ -508,7 +509,6 @@ sub stringify {
     return $obj->build_message->stringify;
 }
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
 
 =encoding utf8
@@ -676,7 +676,7 @@ in the %Mail::Builder::TypeConstraints::EMAILVALID hash.
 Eg. if you want to disable the check for valid TLDs you can set the 'tldcheck'
 option (without dashes 'tldcheck' and not '-tldcheck'):
 
- $Mail::Builder::TypeConstraints{tldcheck} = 0;
+ $Mail::Builder::TypeConstraints::EMAILVALID{tldcheck} = 0;
 
 =head3 to, cc, bcc
 
