@@ -1,5 +1,5 @@
 ---
-abstract: 'Easily create plaintext/html e-mail messages with attachments'
+abstract: 'Easily create plaintext/html e-mail messages with attachments and inline images'
 author:
   - 'Maroš Kollár'
 build_requires:
@@ -37,4 +37,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/Mail-Builder.git
-version: 2.08
+version: 2.09
